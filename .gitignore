@@ -1,0 +1,39 @@
+# ---------- SECRETS: never commit these ----------
+.env
+.env.*
+!.env.example
+backend/.env
+android/local.properties
+local.properties
+android/app/google-services.json
+google-services.json
+*.jks
+*.keystore
+
+# ---------- Python / backend ----------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# ---------- Android / Gradle build output ----------
+android/build/
+android/app/build/
+build/
+.gradle/
+.cxx/
+captures/
+*.apk
+*.aab
+
+# ---------- IDE and tool folders ----------
+.idea/
+*.iml
+.vscode/
+
+# ---------- Operating system files ----------
+.DS_Store
+Thumbs.db
+desktop.ini
