@@ -268,7 +268,7 @@ Interactive documentation is generated automatically at `/docs` (Swagger).
 - **A new Android Gradle Plugin.** AGP 9 compiles Kotlin itself, so older build-file advice no longer applied and every version had to be checked for compatibility.
 - **Bugs found by review, not by tests.** A product-only order could never leave "Pending"; the fix was per-line statuses with a derived order status. Later, a code review caught that Providers and Businesses could not see the orders they had placed; this is now covered by a unit test.
 - **BCrypt's 72-byte limit.** Passwords are limited to 64 characters so the hash can never silently ignore part of a long password.
-- **Careless copy/paste.** Several build errors came from pasting a file header onto the end of a line. A syntax check over all files (`python -m compileall`) finds these in one go.
+- **Careless file management.** Several build errors came from pasting a file header onto the end of a line. A syntax check over all files (`python -m compileall`) finds these in one go.
 
 ---
 
