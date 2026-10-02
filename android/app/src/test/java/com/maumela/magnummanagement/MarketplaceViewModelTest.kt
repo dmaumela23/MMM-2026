@@ -195,7 +195,7 @@ class MarketplaceViewModelTest {
         )
         assertEquals(expected, productFilters.last())
         assertEquals(expected, serviceFilters.last())
-        assertEquals(4, viewModel.state.value.filters.activeFilterCount)
+        assertEquals(5, viewModel.state.value.filters.activeFilterCount)
     }
 
     // Verifies clearing filters keeps the search text but removes everything else.
