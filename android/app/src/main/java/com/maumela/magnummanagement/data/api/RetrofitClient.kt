@@ -26,9 +26,9 @@ class RetrofitClient(
 
     init {
         val okHttp = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(90, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(20, TimeUnit.SECONDS)
             .addInterceptor(AuthInterceptor(tokenProvider) { sessionEvents.notifyExpired() })
             .apply {
                 if (debug) {
