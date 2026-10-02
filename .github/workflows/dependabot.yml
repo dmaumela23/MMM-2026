@@ -1,0 +1,16 @@
+# Opens pull requests when a dependency has a new version. The CI workflows then test each update
+# automatically, so an update that breaks the app is visible before it is merged.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/backend"
+    schedule:
+      interval: weekly
+  - package-ecosystem: gradle
+    directory: "/android"
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
