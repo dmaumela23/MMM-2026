@@ -43,7 +43,7 @@ jobs:
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
         
       - name: Set up Gradle (with build caching)
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Make the Gradle wrapper executable
         run: chmod +x gradlew
