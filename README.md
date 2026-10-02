@@ -16,7 +16,7 @@
 
 <!-- EDIT: replace the line above with your own one-sentence pitch if you like. -->
 
-**Honest scope notes.** The Energy module runs on **simulated data** and is not connected to any electricity meter or grid. **No payments** are processed: orders are recorded only. MMM is a prototype, not a production system (see [Limitations](#10-limitations-and-future-work)).
+**Scope notes.** The Energy module runs on **simulated data** and is not connected to any electricity meter or grid. **No payments** are processed: orders are recorded only. MMM is a prototype, not a production system (see [Limitations](#10-limitations-and-future-work)).
 
 ## Contents
 1. [Purpose of the app](#1-purpose-of-the-app)
