@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/dmaumela23/MMM-2026/actions/workflows/backend-ci.yml"><img alt="Backend CI" src="https://github.com/YOUR-USERNAME/MMM-2026/actions/workflows/backend-ci.yml/badge.svg"></a>
+  <a href="https://github.com/dmaumela23/MMM-2026/actions/workflows/backend-ci.yml"><img alt="Backend CI" src="https://github.com/dmaumela23/MMM-2026/actions/workflows/backend-ci.yml/badge.svg"></a>
   <a href="https://github.com/dmaumela23/MMM-2026/actions/workflows/android-ci.yml"><img alt="Android CI" src="https://github.com/dmaumela23/MMM-2026/actions/workflows/android-ci.yml/badge.svg"></a>
   <img alt="Kotlin" src="https://img.shields.io/badge/Android-Kotlin%20%2B%20Compose-7F52FF?logo=kotlin&logoColor=white">
   <img alt="FastAPI" src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white">
