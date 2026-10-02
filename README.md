@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/dmaumela23/MMM-2026/actions/workflows/backend-ci.yml"><img alt="Backend CI" src="https://github.com/dmaumela23/MMM-2026/actions/workflows/backend-ci.yml/badge.svg"></a>
+  <a href="https://github.com/dmaumela23/MMM-2026/actions/workflows/backend-ci.yml"><img alt="Backend CI" src="https://github.com/YOUR-USERNAME/MMM-2026/actions/workflows/backend-ci.yml/badge.svg"></a>
   <a href="https://github.com/dmaumela23/MMM-2026/actions/workflows/android-ci.yml"><img alt="Android CI" src="https://github.com/dmaumela23/MMM-2026/actions/workflows/android-ci.yml/badge.svg"></a>
   <img alt="Kotlin" src="https://img.shields.io/badge/Android-Kotlin%20%2B%20Compose-7F52FF?logo=kotlin&logoColor=white">
   <img alt="FastAPI" src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white">
@@ -14,8 +14,9 @@
 
 > **One platform for products, services and energy.** A university prototype: an Android app (Kotlin, Jetpack Compose) backed by a REST API (FastAPI) and a PostgreSQL database.
 
+<!-- EDIT: replace the line above with your own one-sentence pitch if you like. -->
 
-**Scope notes.** The Energy module runs on **simulated data** and is not connected to any electricity meter or grid. **No payments** are processed: orders are recorded only. MMM is a prototype, not a production system (see [Limitations](#10-limitations-and-future-work)).
+**Honest scope notes.** The Energy module runs on **simulated data** and is not connected to any electricity meter or grid. **No payments** are processed: orders are recorded only. MMM is a prototype, not a production system (see [Limitations](#10-limitations-and-future-work)).
 
 ## Contents
 1. [Purpose of the app](#1-purpose-of-the-app)
@@ -69,6 +70,7 @@ Part 1 of the project compared three platforms. MMM combines the useful ideas fr
 | **Fiverr** | Service listings, categories, simple ordering, seller profiles, ratings | Service listings with categories, ratings, estimated delivery time and a simple "request this service" flow |
 | **Upwork** | Client/provider relationships, project-based work, milestones, reputation | A **provider workflow**: every order line has its own status (Pending, Accepted, In progress, Completed) that the provider controls, so a project is tracked step by step |
 
+<!-- EDIT: add 2-3 sentences in your own words about what surprised you in the research, or what you chose NOT to copy and why. -->
 
 ---
 
@@ -262,13 +264,13 @@ Interactive documentation is generated automatically at `/docs` (Swagger).
 | Simulated energy data from a deterministic generator | Honest, repeatable demos and tests | Not real consumption data |
 
 ### 4.8 Challenges and lessons learned
-
+<!-- EDIT: these are real problems from this project. Keep the ones that happened to you and add your own. -->
 - **Emulator networking.** Inside the Android emulator, `localhost` is the emulator itself. The computer is reached at `10.0.2.2`, and a physical phone needs the PC's LAN address or `adb reverse`.
 - **OneDrive and Gradle.** OneDrive locked Gradle's build files and caused "Unable to delete directory" errors. Moving the project out of OneDrive fixed it.
 - **A new Android Gradle Plugin.** AGP 9 compiles Kotlin itself, so older build-file advice no longer applied and every version had to be checked for compatibility.
 - **Bugs found by review, not by tests.** A product-only order could never leave "Pending"; the fix was per-line statuses with a derived order status. Later, a code review caught that Providers and Businesses could not see the orders they had placed; this is now covered by a unit test.
 - **BCrypt's 72-byte limit.** Passwords are limited to 64 characters so the hash can never silently ignore part of a long password.
-- **Careless file management.** Several build errors came from pasting a file header onto the end of a line. A syntax check over all files (`python -m compileall`) finds these in one go.
+- **Careless copy/paste.** Several build errors came from pasting a file header onto the end of a line. A syntax check over all files (`python -m compileall`) finds these in one go.
 
 ---
 
@@ -311,6 +313,8 @@ MMM/
 └── docs/                 diagrams, screenshots, checklists
 ```
 
+<!-- EDIT: adjust the next table to describe what you REALLY did. Add your real numbers. -->
+
 | Practice | How it is applied here |
 |---|---|
 | **One repository, two projects** | A single repo holds backend, app and documentation so a change to the API and the app that uses it travel together |
@@ -320,7 +324,7 @@ MMM/
 | **Issues** | Bugs and ideas are tracked as issues using the templates in `.github/ISSUE_TEMPLATE`; PRs reference them (`Closes #12`) |
 | **Keeping secrets out** | A root [`.gitignore`](.gitignore) excludes `.env`, `local.properties` and `google-services.json`. Only `.env.example` is committed. CI creates its own throw-away secrets |
 | **Dependency updates** | [Dependabot](.github/dependabot.yml) opens pull requests for new Python, Gradle and Actions versions; the CI below tests each one automatically |
-| **Evidence of progress** | Commit history, closed issues, merged pull requests and tagged releases (for example `v1.0.0-prototype`).|
+| **Evidence of progress** | Commit history, closed issues, merged pull requests and tagged releases (for example `v1.0.0-prototype`). <!-- EDIT: e.g. "47 commits, 12 pull requests, 9 issues" --> |
 
 ### 6.2 GitHub Actions: continuous integration
 Two workflows run automatically. Each one answers the question *"does the project still work after this change?"* without anyone having to remember to check.
@@ -356,7 +360,7 @@ Design choices in the workflows:
 - **A clean-clone check for free**: because the build has no `google-services.json` and no `.env`, CI also proves the app and API start without private files.
 
 ### 6.3 Evidence
-
+<!-- EDIT: add real screenshots after your first runs. -->
 | Screenshot | File |
 |---|---|
 | A green Backend CI run | `docs/images/screenshots/github-backend-ci.png` |
@@ -442,6 +446,7 @@ Without the file the app still builds and runs; Settings explains that notificat
 | **Backend** | pytest, FastAPI TestClient, a separate `_test` PostgreSQL database | Registration and login, BCrypt hashing, JWT protection, roles and ownership, product/service CRUD and filters, order totals and stock, status workflow, energy data, settings, error shapes |
 | **Android** | JUnit 4, MockK, coroutines-test | Validators, price and energy calculators, formatters, offline filters, repositories (success, error and cache fallback), ViewModels, token storage, permission and order rules |
 
+<!-- EDIT: paste your real results, for example "Backend: 190 passed. Android: 140 passed." -->
 
 <p align="center">
   <img src="docs/images/screenshots/tests-green.png" width="80%" alt="Passing test runs">
@@ -484,8 +489,11 @@ Both suites also run automatically on every push through GitHub Actions ([sectio
 
 ---
 
-**Author:** Dakalo D. Maumela · **Course:** Open Source Coding / OPSC6312 · **Year:** 2026
+## 11. About this project
+<!-- EDIT: write this section yourself: your name, course, module code, lecturer, date, and what you personally learned. -->
 
-**What I learned:** In conclusion from this Part 2 I learned much about managing a database in PostgreSQL, making the right decision when creating and using an emulator in Android Studio. I also additionally learnt from mistakes whether it be in written code or architecture and the mishandling of files. A big learning curve additionally is the RestAPI and its connection issues. Understandably I learnt that in the more i prep the better it will be since errors and mishaps are always certain to arise.
+**Author:** YOUR NAME · **Course:** YOUR COURSE / MODULE · **Year:** 2026
 
-**Acknowledgements:** Institution: Emeris, Lectrurer: Terrence Maphogo
+**What I learned:** <!-- 3-5 sentences in your own words. -->
+
+**Acknowledgements:** <!-- e.g. lecturers, documentation, tools. If your institution requires you to disclose the use of AI assistance, state it here. -->
