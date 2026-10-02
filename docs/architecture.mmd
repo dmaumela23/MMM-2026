@@ -1,0 +1,18 @@
+flowchart LR
+    subgraph Android["Android app (Kotlin, Compose, Material 3)"]
+        UI[Compose screens] --> VM[ViewModels<br/>StateFlow]
+        VM --> Repo[Repositories]
+        Repo --> Retro[Retrofit + OkHttp<br/>JWT interceptor]
+        Repo --> Room[(Room cache<br/>read-only copy)]
+        Repo --> Store[TokenStore + PreferencesStore]
+        Store --> KS[Android Keystore<br/>AES-256-GCM]
+        FCM[Firebase Cloud Messaging SDK]
+    end
+    Retro -->|HTTP + JSON + Bearer JWT| API
+    subgraph Backend["Backend (Python)"]
+        API[FastAPI routers] --> Svc[Service layer]
+        Svc --> ORM[SQLAlchemy]
+        API --> Auth[JWT + BCrypt]
+    end
+    ORM --> DB[(PostgreSQL<br/>source of truth)]
+    FCM -.->|device token via PUT /api/settings| API

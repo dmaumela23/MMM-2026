@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1450" height="170" viewBox="0 0 1450 170" role="img" aria-label="MMM colour palette">
+<rect width="1450" height="170" fill="#FFFFFF"/>
+<rect x="10" y="10" width="150" height="120" rx="12" fill="#070B14" stroke="#8892A6" stroke-opacity="0.4"/>
+<text x="85.0" y="66.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#FFFFFF">Navy 900</text>
+<text x="85.0" y="88.0" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#FFFFFF">#070B14</text>
+<rect x="170" y="10" width="150" height="120" rx="12" fill="#0A1428" stroke="#8892A6" stroke-opacity="0.4"/>
+<text x="245.0" y="66.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#FFFFFF">Navy 800</text>
+<text x="245.0" y="88.0" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#FFFFFF">#0A1428</text>
+<rect x="330" y="10" width="150" height="120" rx="12" fill="#111E38" stroke="#8892A6" stroke-opacity="0.4"/>
+<text x="405.0" y="66.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#FFFFFF">Navy 700</text>
+<text x="405.0" y="88.0" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#FFFFFF">#111E38</text>
+<rect x="490" y="10" width="150" height="120" rx="12" fill="#D4AF37" stroke="#8892A6" stroke-opacity="0.4"/>
+<text x="565.0" y="66.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#070B14">Gold</text>
+<text x="565.0" y="88.0" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#070B14">#D4AF37</text>
+<rect x="650" y="10" width="150" height="120" rx="12" fill="#2F7BFF" stroke="#8892A6" stroke-opacity="0.4"/>
+<text x="725.0" y="66.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#FFFFFF">Electric blue</text>
+<text x="725.0" y="88.0" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#FFFFFF">#2F7BFF</text>
+<rect x="810" y="10" width="150" height="120" rx="12" fill="#E3E8F2" stroke="#8892A6" stroke-opacity="0.4"/>
+<text x="885.0" y="66.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#070B14">Grey 100</text>
+<text x="885.0" y="88.0" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#070B14">#E3E8F2</text>
+<rect x="970" y="10" width="150" height="120" rx="12" fill="#2E9E6B" stroke="#8892A6" stroke-opacity="0.4"/>
+<text x="1045.0" y="66.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#FFFFFF">Success</text>
+<text x="1045.0" y="88.0" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#FFFFFF">#2E9E6B</text>
+<rect x="1130" y="10" width="150" height="120" rx="12" fill="#E0A100" stroke="#8892A6" stroke-opacity="0.4"/>
+<text x="1205.0" y="66.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#070B14">Warning</text>
+<text x="1205.0" y="88.0" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#070B14">#E0A100</text>
+<rect x="1290" y="10" width="150" height="120" rx="12" fill="#D64545" stroke="#8892A6" stroke-opacity="0.4"/>
+<text x="1365.0" y="66.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#FFFFFF">Error</text>
+<text x="1365.0" y="88.0" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#FFFFFF">#D64545</text>
+<text x="10" y="162" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#4A5568">Status colours are always paired with a text label, never used alone.</text>
+</svg>

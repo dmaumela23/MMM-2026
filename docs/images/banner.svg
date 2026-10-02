@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="Maumela Magnum Management banner">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#070B14"/>
+      <stop offset="0.6" stop-color="#0A1428"/>
+      <stop offset="1" stop-color="#1B2A4A"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F6E3A3"/>
+      <stop offset="1" stop-color="#D4AF37"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="320" fill="url(#bg)"/>
+  <circle cx="1130" cy="40" r="170" fill="#2F7BFF" opacity="0.10"/>
+  <circle cx="1230" cy="290" r="120" fill="#D4AF37" opacity="0.10"/>
+  <text x="70" y="170" font-family="Segoe UI, Arial, sans-serif" font-size="128" font-weight="700" letter-spacing="10" fill="url(#gold)">MMM</text>
+  <text x="76" y="218" font-family="Segoe UI, Arial, sans-serif" font-size="30" letter-spacing="6" fill="#FFFFFF">MAUMELA MAGNUM MANAGEMENT</text>
+  <text x="76" y="262" font-family="Segoe UI, Arial, sans-serif" font-size="22" fill="#A9B4C9">One platform for products, services and energy</text>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700" text-anchor="middle">
+    <circle cx="840" cy="160" r="52" fill="#2F7BFF" fill-opacity="0.15" stroke="#2F7BFF" stroke-width="3"/>
+    <text x="840" y="171" fill="#2F7BFF">D</text>
+    <circle cx="980" cy="160" r="52" fill="#D4AF37" fill-opacity="0.15" stroke="#D4AF37" stroke-width="3"/>
+    <text x="980" y="171" fill="#D4AF37">S</text>
+    <circle cx="1120" cy="160" r="52" fill="#4FD1A5" fill-opacity="0.15" stroke="#4FD1A5" stroke-width="3"/>
+    <text x="1120" y="171" fill="#4FD1A5">E</text>
+  </g>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#A9B4C9" text-anchor="middle">
+    <text x="840" y="246">Digital</text><text x="840" y="266">Products</text>
+    <text x="980" y="246">Service</text><text x="980" y="266">Delivery</text>
+    <text x="1120" y="246">Energy</text><text x="1120" y="266">Solutions</text>
+  </g>
+</svg>
