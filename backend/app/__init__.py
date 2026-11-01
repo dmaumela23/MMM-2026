@@ -1,0 +1,1 @@
+"""MMM (Maumela Magnum Management) REST API."""
