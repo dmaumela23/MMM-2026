@@ -414,7 +414,7 @@ Hosting Architecture
 | Database | Neon | Provides a managed PostgreSQL database for persistent application data. |
 | Android application | Android Studio | Connects to the hosted backend through Retrofit and HTTPS. |
 
-## Backend Deployment Configuration
+##### Backend Deployment Configuration
 
 The backend is deployed as a Render Web Service connected to the MMM-2026 GitHub repository.
 The deployment uses the following configuration:
@@ -428,15 +428,15 @@ API base path: /api.
 The Render service must be configured with the appropriate backend root directory, dependency installation command and application start command.
 Example configuration:
 
-# Build command
+**Build command**
 pip install -r requirements.txt
 
-# Start command
+**Start command**
 uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
 If the Render service uses backend as its root directory, the commands above should execute relative to that directory.
 
-## Cold-Start Behaviour
+##### Cold-Start Behaviour
 
 The Render hosting environment may operate on a free instance, which introduces a cold-start delay.
 When the free Render Web Service receives no incoming traffic for 15 consecutive minutes, it automatically spins down. When a new request arrives, Render starts the service again.
@@ -449,7 +449,7 @@ Users should allow the initial request to complete before retrying or assuming t
 The Neon database is hosted separately from the Render application service, allowing application data to remain persistent when the Render service spins down.
 For applications requiring uninterrupted availability and more consistent response times, a paid Render instance can be considered.
 
-##  Environment variable configuration:
+##### Environment variable configuration:
 
 1. Create a PostgreSQL project in Neon.
 
