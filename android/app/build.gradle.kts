@@ -14,6 +14,7 @@ if (file("google-services.json").exists()) {
 }
 
 // Backend URL. Default = Android emulator -> your computer. Override in android/local.properties:
+//   MMM_BASE_URL=http://10.0.2.2:8000/api/           (Android emulator -> your computer)
 //   MMM_BASE_URL=http://192.168.1.50:8000/api/      (physical phone over Wi-Fi)
 //   MMM_BASE_URL=http://localhost:8000/api/          (physical phone with: adb reverse tcp:8000 tcp:8000)
 val localProperties = Properties().apply {
