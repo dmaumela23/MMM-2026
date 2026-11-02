@@ -21,7 +21,7 @@ val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
-val mmmBaseUrl: String = (localProperties.getProperty("MMM_BASE_URL") ?: "https://mmm-api.onrender.com/api/")
+val mmmBaseUrl: String = (localProperties.getProperty("MMM_BASE_URL") ?: "https://mmm-2026.onrender.com/api/")
     .trim()
     .let { if (it.endsWith("/")) it else "$it/" } // Retrofit requires a trailing slash
 
