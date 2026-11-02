@@ -89,7 +89,7 @@ Part 1 of the project compared three platforms. MMM combines the useful ideas fr
     <td align="center"><img src="docs/images/screenshots/order_screenshot.png" width="210" alt="Orders"><br><sub><b>Orders</b><br>Draft checkout and history</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/screenshots/orderdetails_screenshot.png" width="210" alt="order details_screenshot"><br><sub><b>Order details</b><br>Per-line status, server total</sub></td>
+    <td align="center"><img src="docs/images/screenshots/orderdetails_screeenshot.png" width="210" alt="order details_screenshot"><br><sub><b>Order details</b><br>Per-line status, server total</sub></td>
     <td align="center"><img src="docs/images/screenshots/energytab_screenshot.png" width="210" alt="Energy dashboard"><br><sub><b>Energy (simulated)</b><br>Usage, plan, cost, chart</sub></td>
     <td align="center"><img src="docs/images/screenshots/energyreports_screenshot.png" width="210" alt="Energy reports"><br><sub><b>Energy reports</b><br>Monthly totals</sub></td>
   </tr>
