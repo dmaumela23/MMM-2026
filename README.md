@@ -434,6 +434,66 @@ Without the file the app still builds and runs; Settings explains that notificat
 | Backend tests refuse to run | `TEST_DATABASE_URL` must name a database ending in `_test` |
 | No test notification | Use a Google Play emulator image, allow notifications (Android 13+), put the app in the background |
 
+### Hosted deployment (Render and Neon)
+The API and database also run online, so the app works on any phone with internet access and nothing has to run on a developer PC.
+
+| Part | Service | Configuration |
+|---|---|---|
+| PostgreSQL | Neon (free plan) | The connection string is stored only in Render's `DATABASE_URL` setting |
+| FastAPI backend | Render web service (free plan), deployed from this repository | Root directory `backend`; start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`; settings `DATABASE_URL`, `JWT_SECRET`, `PYTHON_VERSION` |
+
+- **Live API:** https://mmm-api.onrender.com (Swagger at `/docs`, health check at `/health`)
+- **Continuous deployment:** Render redeploys when a change reaches `main`, after the GitHub Actions checks pass.
+- **Cold starts:** a free Render service sleeps after 15 minutes without traffic, so the first request after a quiet period can take about a minute. The app uses longer network timeouts to cope.
+- **Secrets** live only in Render's environment settings, never in the repository.
+- **App address:** the app defaults to the hosted API. For local development, put `MMM_BASE_URL=http://10.0.2.2:8000/api/` (emulator) in `android/local.properties`.
+
+---
+### Hosted deployment (Render and Neon)
+The API and database also run online, so the app works on any phone with internet access and nothing has to run on a developer PC.
+
+| Part | Service | Configuration |
+|---|---|---|
+| PostgreSQL | Neon (free plan) | The connection string is stored only in Render's `DATABASE_URL` setting |
+| FastAPI backend | Render web service (free plan), deployed from this repository | Root directory `backend`; start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`; settings `DATABASE_URL`, `JWT_SECRET`, `PYTHON_VERSION` |
+
+- **Live API:** https://mmm-api.onrender.com (Swagger at `/docs`, health check at `/health`)
+- **Continuous deployment:** Render redeploys when a change reaches `main`, after the GitHub Actions checks pass.
+- **Cold starts:** a free Render service sleeps after 15 minutes without traffic, so the first request after a quiet period can take about a minute. The app uses longer network timeouts to cope.
+- **Secrets** live only in Render's environment settings, never in the repository.
+- **App address:** the app defaults to the hosted API. For local development, put `MMM_BASE_URL=http://10.0.2.2:8000/api/` (emulator) in `android/local.properties`.
+
+---
+### Hosted deployment (Render and Neon)
+The API and database also run online, so the app works on any phone with internet access and nothing has to run on a developer PC.
+
+| Part | Service | Configuration |
+|---|---|---|
+| PostgreSQL | Neon (free plan) | The connection string is stored only in Render's `DATABASE_URL` setting |
+| FastAPI backend | Render web service (free plan), deployed from this repository | Root directory `backend`; start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`; settings `DATABASE_URL`, `JWT_SECRET`, `PYTHON_VERSION` |
+
+- **Live API:** https://mmm-api.onrender.com (Swagger at `/docs`, health check at `/health`)
+- **Continuous deployment:** Render redeploys when a change reaches `main`, after the GitHub Actions checks pass.
+- **Cold starts:** a free Render service sleeps after 15 minutes without traffic, so the first request after a quiet period can take about a minute. The app uses longer network timeouts to cope.
+- **Secrets** live only in Render's environment settings, never in the repository.
+- **App address:** the app defaults to the hosted API. For local development, put `MMM_BASE_URL=http://10.0.2.2:8000/api/` (emulator) in `android/local.properties`.
+
+---
+### Hosted deployment (Render and Neon)
+The API and database also run online, so the app works on any phone with internet access and nothing has to run on a developer PC.
+
+| Part | Service | Configuration |
+|---|---|---|
+| PostgreSQL | Neon (free plan) | The connection string is stored only in Render's `DATABASE_URL` setting |
+| FastAPI backend | Render web service (free plan), deployed from this repository | Root directory `backend`; start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`; settings `DATABASE_URL`, `JWT_SECRET`, `PYTHON_VERSION` |
+
+- **Live API:** https://mmm-api.onrender.com (Swagger at `/docs`, health check at `/health`)
+- **Continuous deployment:** Render redeploys when a change reaches `main`, after the GitHub Actions checks pass.
+- **Cold starts:** a free Render service sleeps after 15 minutes without traffic, so the first request after a quiet period can take about a minute. The app uses longer network timeouts to cope.
+- **Secrets** live only in Render's environment settings, never in the repository.
+- **App address:** the app defaults to the hosted API. For local development, put `MMM_BASE_URL=http://10.0.2.2:8000/api/` (emulator) in `android/local.properties`.
+
+---
 ---
 
 ## 8. Testing
