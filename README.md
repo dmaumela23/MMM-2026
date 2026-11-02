@@ -30,6 +30,7 @@
 10. [Limitations and future work](#10-limitations-and-future-work)
 11. [About this project](#11-about-this-project)
 
+
 ---
 
 ## 1. Purpose of the app
@@ -84,11 +85,11 @@ Part 1 of the project compared three platforms. MMM combines the useful ideas fr
   </tr>
   <tr>
     <td align="center"><img src="docs/images/screenshots/filter_screenshot.png" width="210" alt="Filters"><br><sub><b>Filters</b><br>Applied by the server in SQL</sub></td>
-    <td align="center"><img src="docs/images/screenshots/productdetails.png" width="210" alt="Product details"><br><sub><b>Product details</b><br>Stock, seller, rating, quantity</sub></td>
+    <td align="center"><img src="docs/images/screenshots/productdetails_screenshot.png" width="210" alt="Product details"><br><sub><b>Product details</b><br>Stock, seller, rating, quantity</sub></td>
     <td align="center"><img src="docs/images/screenshots/order_screenshot.png" width="210" alt="Orders"><br><sub><b>Orders</b><br>Draft checkout and history</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/screenshots/orderdetails.png" width="210" alt="order details_screenshot"><br><sub><b>Order details</b><br>Per-line status, server total</sub></td>
+    <td align="center"><img src="docs/images/screenshots/orderdetails_screenshot.png" width="210" alt="order details_screenshot"><br><sub><b>Order details</b><br>Per-line status, server total</sub></td>
     <td align="center"><img src="docs/images/screenshots/energytab_screenshot.png" width="210" alt="Energy dashboard"><br><sub><b>Energy (simulated)</b><br>Usage, plan, cost, chart</sub></td>
     <td align="center"><img src="docs/images/screenshots/energyreports_screenshot.png" width="210" alt="Energy reports"><br><sub><b>Energy reports</b><br>Monthly totals</sub></td>
   </tr>
@@ -405,12 +406,90 @@ copy .env.example .env      # then fill in the values
 3. **Seed demo data:** `python seed.py` creates `demo.customer@example.com`, `demo.provider@example.com` and `demo.business@example.com` (password = your `SEED_DEMO_PASSWORD`), 12 products, 10 services, 3 energy plans and simulated usage.
 4. **Run:** `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`, then open <http://localhost:8000/docs>.
 
+### Deployment
+Hosting Architecture
+| Component | Platform | Purpose |
+|---|---|---|
+| Backend API | Render | Hosts the FastAPI application and exposes REST API endpoints over HTTPS. |
+| Database | Neon | Provides a managed PostgreSQL database for persistent application data. |
+| Android application | Android Studio | Connects to the hosted backend through Retrofit and HTTPS. |
+
+## Backend Deployment Configuration
+
+The backend is deployed as a Render Web Service connected to the MMM-2026 GitHub repository.
+The deployment uses the following configuration:
+Runtime: Python 3.11 or later.
+Framework: FastAPI.
+Database: PostgreSQL hosted on Neon.
+Application server: Uvicorn.
+Database ORM: SQLAlchemy.
+Deployment platform: Render.
+API base path: /api.
+The Render service must be configured with the appropriate backend root directory, dependency installation command and application start command.
+Example configuration:
+
+# Build command
+pip install -r requirements.txt
+
+# Start command
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+If the Render service uses backend as its root directory, the commands above should execute relative to that directory.
+
+## Cold-Start Behaviour
+
+The Render hosting environment may operate on a free instance, which introduces a cold-start delay.
+When the free Render Web Service receives no incoming traffic for 15 consecutive minutes, it automatically spins down. When a new request arrives, Render starts the service again.
+This means:
+The first API request after inactivity may take approximately one minute or longer to respond.
+Subsequent requests should respond normally while the service remains active.
+The initial delay does not necessarily indicate an application or database failure.
+Users should allow the initial request to complete before retrying or assuming the backend is unavailable.
+
+The Neon database is hosted separately from the Render application service, allowing application data to remain persistent when the Render service spins down.
+For applications requiring uninterrupted availability and more consistent response times, a paid Render instance can be considered.
+
+##  Environment variable configuration:
+
+1. Create a PostgreSQL project in Neon.
+
+2. Open the Neon dashboard and select the project's Connect option.
+
+3. Copy the PostgreSQL connection string, retaining the required SSL configuration (sslmode=require).
+
+4. Open the MMM backend Web Service in Render.
+
+5. Navigate to Environment.
+
+6. Add the three variables listed above with their corresponding values.
+
+7. Generate a strong, unique JWT secret and demo password.
+
+8. Save the configuration and redeploy the service if necessary.
+
+9. The actual credentials must never be committed to GitHub or included directly in application source code. The .env file should remain excluded through .gitignore. The .env.example file provides variable names and configuration guidance without exposing actual secrets.
+
+Successful deployment should be followed by testing database connectivity, user registration, authentication, product retrieval, service retrieval and order creation.
+The deployment provides MMM with a remotely accessible backend infrastructure, persistent PostgreSQL data storage and a configurable API connection for Android development and production use.
+
+<p align="center">
+  <img src="docs/images/screenshots/github-pull-request-checks-ii.png" width="80%" alt="Pull request with passing CI checks">
+</p>
+
 ### Android app
 1. Open `android/` in Android Studio and let Gradle sync.
 2. Create an emulator with a **Google Play** system image.
 3. Start the backend, then run the `app` configuration.
 
 **Connecting the app to the backend.** The address is the build setting `MMM_BASE_URL` (default `http://10.0.2.2:8000/api/`). Override it in `android/local.properties` (never committed):
+
+## Application Setup and API Endpoints
+The following table describes the API configurations used when running the MMM Android application in different environments.
+
+| Environment | API Base URL | Configuration |
+| Android Emulator (local development) | http://10.0.2.2:8000/api/ | Set MMM_BASE_URL=http://10.0.2.2:8000/api/ in android/local.properties to connect to the backend running on the development computer. |
+| Live / Production API | https://mmm-2026.onrender.com/api/ | Default production endpoint. Used when no local MMM_BASE_URL override is configure |
+
 
 | Where the app runs | `MMM_BASE_URL` | Notes |
 |---|---|---|
