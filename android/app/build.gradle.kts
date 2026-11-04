@@ -20,7 +20,7 @@ val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
-val mmmBaseUrl: String = (localProperties.getProperty("MMM_BASE_URL") ?: "https://MMM-2026.onrender.com/api/")
+val mmmBaseUrl: String = (localProperties.getProperty("MMM_BASE_URL") ?: "https://mmm-2026.onrender.com/api/")
     .trim()
     .let { if (it.endsWith("/")) it else "$it/" } // Retrofit requires a trailing slash
 
@@ -101,6 +101,12 @@ dependencies {
     // Firebase Cloud Messaging (required SDK)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation("com.google.firebase:firebase-auth")
+
+    // AndroidX Credential Manager Libraries (Required for modern Google Sign-In)
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     // Unit tests
     testImplementation(libs.junit)

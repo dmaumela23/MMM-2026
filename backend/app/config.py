@@ -33,11 +33,19 @@ class Settings(BaseSettings):
     bcrypt_rounds: int = Field(default=12, ge=4, le=16)
     seed_demo_password: str | None = None
     test_database_url: str | None = None
+    # OAuth "Web application" client ID from Google Cloud. A Google ID token is only accepted if it
+    # was issued FOR this client (its "aud" claim). Leave unset to switch Google sign-in off.
+    google_client_id: str | None = None
 
     @field_validator("database_url", "test_database_url")
     @classmethod
     def _fix_database_url(cls, value: str | None) -> str | None:
         return normalise_database_url(value) if value else value
+
+    @field_validator("google_client_id")
+    @classmethod
+    def _blank_client_id_is_none(cls, value: str | None) -> str | None:
+        return value.strip() or None if value else None
 
 
 @lru_cache
