@@ -80,6 +80,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
 
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
     // REST client (required external library): Retrofit + OkHttp + kotlinx.serialization
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.kotlinx.serialization)
