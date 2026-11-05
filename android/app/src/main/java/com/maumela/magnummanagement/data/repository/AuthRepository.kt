@@ -6,6 +6,7 @@ import com.maumela.magnummanagement.data.api.ErrorKind
 import com.maumela.magnummanagement.data.local.PreferencesStore
 import com.maumela.magnummanagement.data.local.TokenStore
 import com.maumela.magnummanagement.data.model.AuthResponse
+import com.maumela.magnummanagement.data.model.GoogleLoginRequest
 import com.maumela.magnummanagement.data.model.LoginRequest
 import com.maumela.magnummanagement.data.model.PasswordChangeRequest
 import com.maumela.magnummanagement.data.model.RegisterRequest
@@ -24,11 +25,6 @@ sealed interface SessionState {
     data object None : SessionState
 }
 
-/**
- * Registration, login, session restore, logout, and the user's own profile.
- *
- * @param clearLocalData wipes the Room cache (called on logout). Passed in so tests need no database.
- */
 class AuthRepository(
     private val api: ApiService,
     private val tokenStore: TokenStore,
@@ -37,7 +33,6 @@ class AuthRepository(
 ) {
     private val _currentUser = MutableStateFlow<UserDto?>(null)
 
-    /** The logged-in user (role drives which buttons the UI shows). Null when logged out. */
     val currentUser: StateFlow<UserDto?> = _currentUser.asStateFlow()
 
     suspend fun register(request: RegisterRequest): ApiResult<UserDto> =
@@ -45,6 +40,10 @@ class AuthRepository(
 
     suspend fun login(email: String, password: String): ApiResult<UserDto> =
         authenticate { api.login(LoginRequest(email.trim(), password)) }
+
+    /** Authenticates using a Google ID token obtained via Credential Manager. */
+    suspend fun googleSignIn(token: String, role: String = "CUSTOMER"): ApiResult<UserDto> =
+        authenticate { api.googleSignIn(GoogleLoginRequest(token = token, role = role)) }
 
     private suspend fun authenticate(call: suspend () -> AuthResponse): ApiResult<UserDto> {
         val result = safeApiCall(call)
@@ -63,13 +62,6 @@ class AuthRepository(
         return ApiResult.Success(response.user)
     }
 
-    /**
-     * Called by the Splash screen.
-     *  - no stored token            -> Success(None)   (go to Login)
-     *  - token accepted             -> Success(Active) (go to Home)
-     *  - token rejected (401)       -> Success(None)   (token cleared, go to Login)
-     *  - network/server problem     -> Failure         (Splash offers Retry; the token is kept)
-     */
     suspend fun restoreSession(): ApiResult<SessionState> {
         tokenStore.load() ?: return ApiResult.Success(SessionState.None)
         return when (val result = safeApiCall { api.me() }) {
@@ -88,7 +80,6 @@ class AuthRepository(
         }
     }
 
-    /** Removes the token, the saved preferences and every cached row. */
     suspend fun logout() {
         tokenStore.clear()
         preferencesStore.clear()

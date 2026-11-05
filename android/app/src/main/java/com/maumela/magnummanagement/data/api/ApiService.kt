@@ -41,11 +41,15 @@ import retrofit2.http.Query
 interface ApiService {
 
     // ---- Auth
+// ---- Auth
     @POST("auth/register")
     suspend fun register(@Body body: RegisterRequest): AuthResponse
 
     @POST("auth/login")
     suspend fun login(@Body body: LoginRequest): AuthResponse
+
+    @POST("auth/google")
+    suspend fun googleSignIn(@Body body: GoogleLoginRequest): AuthResponse
 
     @GET("auth/me")
     suspend fun me(): UserDto
