@@ -29,9 +29,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.ProductDto
 import com.maumela.magnummanagement.data.model.Sector
 import com.maumela.magnummanagement.data.model.ServiceDto
@@ -97,14 +99,14 @@ fun HomeScreen(
                 MmmTextField(
                     value = query,
                     onValueChange = { query = it },
-                    label = "Search products and services",
+                    label = stringResource(R.string.search_products_and_services),
                     imeAction = ImeAction.Search,
                     onImeAction = { onOpenMarketplace(null, query) },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 )
             }
 
-            item { SectionHeader("Our sectors") }
+            item { SectionHeader(stringResource(R.string.section_our_sectors)) }
             items(SectorRegistry.all, key = { it.sector.name }) { info ->
                 SectorTile(
                     info = info,
@@ -119,25 +121,29 @@ fun HomeScreen(
                 )
             }
 
-            item { SectionHeader("Quick actions") }
+            item { SectionHeader(stringResource(R.string.section_quick_actions)) }
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    MmmButton("Orders", onOpenOrders, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
-                    MmmButton("Account", onOpenProfile, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
-                    MmmButton("Settings", onOpenSettings, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
+                    MmmButton(stringResource(R.string.action_orders), onOpenOrders, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
+                    MmmButton(stringResource(R.string.action_account), onOpenProfile, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
+                    MmmButton(stringResource(R.string.action_settings), onOpenSettings, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
                 }
             }
 
-            item { SectionHeader("Featured products") }
+            item { SectionHeader(stringResource(R.string.section_featured_products)) }
             item {
                 when (featuredProducts) {
                     UiState.Loading -> LoadingView(Modifier.height(120.dp))
                     is UiState.Failure -> ErrorView(featuredProducts.error.message, Modifier.height(240.dp), onRetry = viewModel::load)
                     is UiState.Success -> if (featuredProducts.data.isEmpty()) {
-                        EmptyView("No products yet", "Products will appear here.", Modifier.height(160.dp))
+                        EmptyView(
+                            stringResource(R.string.empty_no_products_title),
+                            stringResource(R.string.empty_no_products_subtitle),
+                            Modifier.height(160.dp)
+                        )
                     } else {
                         LazyRow(
                             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -159,13 +165,17 @@ fun HomeScreen(
                 }
             }
 
-            item { SectionHeader("Featured services") }
+            item { SectionHeader(stringResource(R.string.section_featured_services)) }
             item {
                 when (featuredServices) {
                     UiState.Loading -> LoadingView(Modifier.height(120.dp))
                     is UiState.Failure -> ErrorView(featuredServices.error.message, Modifier.height(240.dp), onRetry = viewModel::load)
                     is UiState.Success -> if (featuredServices.data.isEmpty()) {
-                        EmptyView("No services yet", "Services will appear here.", Modifier.height(160.dp))
+                        EmptyView(
+                            stringResource(R.string.empty_no_services_title),
+                            stringResource(R.string.empty_no_services_subtitle),
+                            Modifier.height(160.dp)
+                        )
                     } else {
                         LazyRow(
                             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -193,6 +203,17 @@ fun HomeScreen(
 @Composable
 private fun HomeHeader(user: UserDto?) {
     val firstName = user?.fullName?.trim()?.split(" ")?.firstOrNull().orEmpty()
+    val welcomeText = if (firstName.isEmpty()) {
+        stringResource(R.string.welcome_generic)
+    } else {
+        stringResource(R.string.welcome_user, firstName)
+    }
+    val accountSubtitle = if (user != null) {
+        stringResource(R.string.user_account_subtitle, Formatters.roleLabel(user.role.name))
+    } else {
+        stringResource(R.string.brand_company_name)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -203,12 +224,12 @@ private fun HomeHeader(user: UserDto?) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("MMM", style = MaterialTheme.typography.displayMedium, color = Gold)
             Text(
-                if (firstName.isEmpty()) "Welcome to MMM" else "Welcome back, $firstName",
+                welcomeText,
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White,
             )
             Text(
-                if (user != null) Formatters.roleLabel(user.role.name) + " account" else "Maumela Magnum Management",
+                accountSubtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Grey200Dark,
             )

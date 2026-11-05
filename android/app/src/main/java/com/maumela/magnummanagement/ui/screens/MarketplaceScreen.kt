@@ -36,9 +36,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.ProductDto
 import com.maumela.magnummanagement.data.model.ServiceDto
 import com.maumela.magnummanagement.ui.components.MarketplaceFilterSheet
@@ -55,8 +57,8 @@ import com.maumela.magnummanagement.viewmodel.MarketplaceViewModel
 import kotlinx.coroutines.launch
 
 /**
- * Browse both catalogues. Search and filters are sent to the server, which filters with SQL.
- * [tabArg] and [queryArg] come from the route (Home tiles and the Home search bar).
+- Browse both catalogues. Search and filters are sent to the server, which filters with SQL.
+- [tabArg] and [queryArg] come from the route (Home tiles and the Home search bar).
  */
 @Composable
 fun MarketplaceScreen(
@@ -90,14 +92,21 @@ fun MarketplaceScreen(
     val categories = if (state.tab == MarketplaceTab.PRODUCTS) state.productCategories else state.serviceCategories
     val selectedCategory = if (state.tab == MarketplaceTab.PRODUCTS) filters.productCategory else filters.serviceCategory
 
+    val cartContentDesc = stringResource(R.string.cart_content_description, draftCount)
+    val filtersButtonText = if (filters.activeFilterCount > 0) {
+        stringResource(R.string.filters_with_count, filters.activeFilterCount)
+    } else {
+        stringResource(R.string.filters_title)
+    }
+
     MmmScaffold(
         topBar = {
             MmmTopBar(
-                title = "Marketplace",
+                title = stringResource(R.string.marketplace_title),
                 actions = {
                     IconButton(onClick = onOpenOrders) {
                         BadgedBox(badge = { if (draftCount > 0) Badge { Text("$draftCount") } }) {
-                            Icon(Icons.Filled.ShoppingCart, contentDescription = "Your order, $draftCount items")
+                            Icon(Icons.Filled.ShoppingCart, contentDescription = cartContentDesc)
                         }
                     }
                 },
@@ -109,7 +118,7 @@ fun MarketplaceScreen(
             MmmTextField(
                 value = filters.query,
                 onValueChange = viewModel::setQuery,
-                label = "Search products and services",
+                label = stringResource(R.string.search_products_and_services),
                 imeAction = ImeAction.Search,
                 onImeAction = viewModel::submitSearch,
                 modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp),
@@ -119,14 +128,16 @@ fun MarketplaceScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                MmmButton("Search", onClick = viewModel::submitSearch)
+                MmmButton(stringResource(R.string.btn_search), onClick = viewModel::submitSearch)
                 MmmButton(
-                    text = if (filters.activeFilterCount > 0) "Filters (${filters.activeFilterCount})" else "Filters",
+                    text = filtersButtonText,
                     onClick = { showFilters = true },
                     style = MmmButtonStyle.Secondary,
                 )
                 if (isFiltered) {
-                    TextButton(onClick = { viewModel.clearSearch(); viewModel.clearFilters() }) { Text("Clear all") }
+                    TextButton(onClick = { viewModel.clearSearch(); viewModel.clearFilters() }) {
+                        Text(stringResource(R.string.btn_clear_all))
+                    }
                 }
             }
 
@@ -135,7 +146,12 @@ fun MarketplaceScreen(
                     Tab(
                         selected = state.tab == tab,
                         onClick = { viewModel.setTab(tab) },
-                        text = { Text(if (tab == MarketplaceTab.PRODUCTS) "Products" else "Services") },
+                        text = {
+                            Text(
+                                if (tab == MarketplaceTab.PRODUCTS) stringResource(R.string.tab_products)
+                                else stringResource(R.string.tab_services)
+                            )
+                        },
                     )
                 }
             }
@@ -149,7 +165,7 @@ fun MarketplaceScreen(
                         FilterChip(
                             selected = selectedCategory == null,
                             onClick = { setCategory(viewModel, state.tab, null) },
-                            label = { Text("All") },
+                            label = { Text(stringResource(R.string.filter_all)) },
                         )
                     }
                     items(categories) { category ->

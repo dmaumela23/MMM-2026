@@ -24,11 +24,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.UserRole
 import com.maumela.magnummanagement.ui.components.BrandHeader
 import com.maumela.magnummanagement.ui.components.MessageCard
@@ -84,34 +86,47 @@ fun RegisterScreen(
         ) {
             BrandHeader()
             Spacer(Modifier.height(8.dp))
-            Text("Create your account", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.align(Alignment.Start))
+            Text(
+                text = stringResource(R.string.register_title),
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.align(Alignment.Start)
+            )
 
             if (serverError != null) MessageCard(serverError, isError = true, modifier = Modifier.fillMaxWidth())
 
             MmmTextField(
-                value = fullName, onValueChange = { fullName = it; viewModel.clearErrors() }, label = "Full name",
+                value = fullName, onValueChange = { fullName = it; viewModel.clearErrors() },
+                label = stringResource(R.string.label_full_name),
                 error = errors.fullName, capitalization = KeyboardCapitalization.Words, modifier = Modifier.fillMaxWidth(),
             )
             MmmTextField(
-                value = email, onValueChange = { email = it; viewModel.clearErrors() }, label = "Email",
+                value = email, onValueChange = { email = it; viewModel.clearErrors() },
+                label = stringResource(R.string.label_email),
                 error = errors.email, keyboardType = KeyboardType.Email, modifier = Modifier.fillMaxWidth(),
             )
             MmmTextField(
-                value = phone, onValueChange = { phone = it; viewModel.clearErrors() }, label = "Phone number (optional)",
+                value = phone, onValueChange = { phone = it; viewModel.clearErrors() },
+                label = stringResource(R.string.label_phone_number),
                 error = errors.phone, keyboardType = KeyboardType.Phone, modifier = Modifier.fillMaxWidth(),
             )
             MmmTextField(
-                value = password, onValueChange = { password = it; viewModel.clearErrors() }, label = "Password",
-                error = errors.password, helper = "At least 8 characters with a letter and a digit",
+                value = password, onValueChange = { password = it; viewModel.clearErrors() },
+                label = stringResource(R.string.label_password),
+                error = errors.password, helper = stringResource(R.string.helper_password_req),
                 isPassword = true, modifier = Modifier.fillMaxWidth(),
             )
             MmmTextField(
-                value = confirm, onValueChange = { confirm = it; viewModel.clearErrors() }, label = "Confirm password",
+                value = confirm, onValueChange = { confirm = it; viewModel.clearErrors() },
+                label = stringResource(R.string.label_confirm_new_password),
                 error = errors.confirmPassword, isPassword = true, imeAction = ImeAction.Done,
                 onImeAction = { submit() }, modifier = Modifier.fillMaxWidth(),
             )
 
-            Text("Account type", style = MaterialTheme.typography.labelLarge, modifier = Modifier.align(Alignment.Start))
+            Text(
+                text = stringResource(R.string.account_type),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.align(Alignment.Start)
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.align(Alignment.Start)) {
                 UserRole.entries.forEach { option ->
                     FilterChip(
@@ -129,13 +144,13 @@ fun RegisterScreen(
             )
 
             MmmButton(
-                text = "Register",
+                text = stringResource(R.string.btn_register),
                 onClick = { submit() },
                 loading = state.isLoading,
                 modifier = Modifier.fillMaxWidth(),
             )
             TextButton(onClick = onBackToLogin, enabled = !state.isLoading) {
-                Text("Already have an account? Log in")
+                Text(stringResource(R.string.btn_already_have_account))
             }
         }
     }

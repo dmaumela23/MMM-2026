@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -48,8 +49,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maumela.magnummanagement.BuildConfig
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.Theme
 import com.maumela.magnummanagement.notifications.FcmRegistrar
+import com.maumela.magnummanagement.ui.components.LanguagePickerCard
 import com.maumela.magnummanagement.ui.components.MessageCard
 import com.maumela.magnummanagement.ui.components.MmmButton
 import com.maumela.magnummanagement.ui.components.MmmButtonStyle
@@ -83,15 +86,19 @@ fun SettingsScreen(
     var newPassword by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
 
+    val msgProfileUpdated = stringResource(R.string.msg_profile_updated)
+    val msgPasswordUpdated = stringResource(R.string.msg_password_updated)
+    val msgNotificationsBlocked = stringResource(R.string.msg_notifications_blocked)
+
     fun hasNotificationPermission(): Boolean =
         Build.VERSION.SDK_INT < 33 ||
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
     var permissionGranted by remember { mutableStateOf(hasNotificationPermission()) }
     val firebaseAvailable = remember { fcm.isAvailable() }
 
     fun enableNotifications() {
         scope.launch {
-            val token = fcm.fetchToken() // null when Firebase is not configured: the preference is still saved
+            val token = fcm.fetchToken()
             settingsViewModel.setNotificationsEnabled(true, token)
         }
     }
@@ -101,7 +108,7 @@ fun SettingsScreen(
         if (granted) {
             enableNotifications()
         } else {
-            scope.launch { snackbar.showSnackbar("Notifications are blocked. Allow them in Android settings to receive updates.") }
+            scope.launch { snackbar.showSnackbar(msgNotificationsBlocked) }
         }
     }
 
@@ -123,7 +130,7 @@ fun SettingsScreen(
     LaunchedEffect(profile.saved) {
         if (profile.saved) {
             profileViewModel.clearMessages()
-            snackbar.showSnackbar("Profile updated")
+            snackbar.showSnackbar(msgProfileUpdated)
         }
     }
     LaunchedEffect(profile.passwordChanged) {
@@ -132,7 +139,7 @@ fun SettingsScreen(
             newPassword = ""
             confirmPassword = ""
             profileViewModel.clearMessages()
-            snackbar.showSnackbar("Password updated")
+            snackbar.showSnackbar(msgPasswordUpdated)
         }
     }
     LaunchedEffect(settings.errorMessage) {
@@ -148,7 +155,7 @@ fun SettingsScreen(
     val passwordErrors = profile.passwordErrors
 
     MmmScaffold(
-        topBar = { MmmTopBar(title = "Settings", onBack = onBack) },
+        topBar = { MmmTopBar(title = stringResource(R.string.settings_title), onBack = onBack) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Column(
@@ -160,48 +167,53 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Profile", style = MaterialTheme.typography.titleLarge)
+            // Language Selection Card
+            Text(stringResource(R.string.section_language), style = MaterialTheme.typography.titleLarge)
+            LanguagePickerCard(modifier = Modifier.fillMaxWidth())
+
+            HorizontalDivider()
+            Text(stringResource(R.string.section_profile), style = MaterialTheme.typography.titleLarge)
             if (profileError != null) MessageCard(profileError, isError = true, modifier = Modifier.fillMaxWidth())
             MmmTextField(
                 value = fullName, onValueChange = { fullName = it; profileViewModel.clearValidationErrors() },
-                label = "Full name", error = profileErrors.fullName, capitalization = KeyboardCapitalization.Words,
+                label = stringResource(R.string.label_full_name), error = profileErrors.fullName, capitalization = KeyboardCapitalization.Words,
                 modifier = Modifier.fillMaxWidth(),
             )
             MmmTextField(
                 value = phone, onValueChange = { phone = it; profileViewModel.clearValidationErrors() },
-                label = "Phone number", error = profileErrors.phone, keyboardType = KeyboardType.Phone,
+                label = stringResource(R.string.label_phone_number), error = profileErrors.phone, keyboardType = KeyboardType.Phone,
                 modifier = Modifier.fillMaxWidth(),
             )
             MmmTextField(
                 value = email, onValueChange = { email = it; profileViewModel.clearValidationErrors() },
-                label = "Email", error = profileErrors.email, keyboardType = KeyboardType.Email,
+                label = stringResource(R.string.label_email), error = profileErrors.email, keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Done, modifier = Modifier.fillMaxWidth(),
             )
             MmmButton(
-                text = "Save changes",
+                text = stringResource(R.string.btn_save_changes),
                 onClick = { profileViewModel.saveProfile(fullName, email, phone) },
                 loading = profile.isSaving,
                 modifier = Modifier.fillMaxWidth(),
             )
 
             HorizontalDivider()
-            Text("Change password", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.section_change_password), style = MaterialTheme.typography.titleLarge)
             MmmTextField(
                 value = currentPassword, onValueChange = { currentPassword = it; profileViewModel.clearValidationErrors() },
-                label = "Current password", error = passwordErrors.current, isPassword = true, modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.label_current_password), error = passwordErrors.current, isPassword = true, modifier = Modifier.fillMaxWidth(),
             )
             MmmTextField(
                 value = newPassword, onValueChange = { newPassword = it; profileViewModel.clearValidationErrors() },
-                label = "New password", error = passwordErrors.new, helper = "At least 8 characters with a letter and a digit",
+                label = stringResource(R.string.label_new_password), error = passwordErrors.new, helper = stringResource(R.string.helper_password_req),
                 isPassword = true, modifier = Modifier.fillMaxWidth(),
             )
             MmmTextField(
                 value = confirmPassword, onValueChange = { confirmPassword = it; profileViewModel.clearValidationErrors() },
-                label = "Confirm new password", error = passwordErrors.confirm, isPassword = true,
+                label = stringResource(R.string.label_confirm_new_password), error = passwordErrors.confirm, isPassword = true,
                 imeAction = ImeAction.Done, modifier = Modifier.fillMaxWidth(),
             )
             MmmButton(
-                text = "Update password",
+                text = stringResource(R.string.btn_update_password),
                 onClick = { profileViewModel.changePassword(currentPassword, newPassword, confirmPassword) },
                 style = MmmButtonStyle.Secondary,
                 loading = profile.isSaving,
@@ -209,7 +221,7 @@ fun SettingsScreen(
             )
 
             HorizontalDivider()
-            Text("Notifications", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.section_notifications), style = MaterialTheme.typography.titleLarge)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -220,30 +232,30 @@ fun SettingsScreen(
                     ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Push notifications", modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.label_push_notifications), modifier = Modifier.weight(1f))
                 Switch(checked = settings.notificationsEnabled, onCheckedChange = null)
             }
             if (!firebaseAvailable) {
                 Text(
-                    "Firebase is not configured in this build (google-services.json is missing), so no notifications will arrive. Your preference is still saved.",
+                    stringResource(R.string.msg_firebase_not_configured),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else if (settings.notificationsEnabled && !permissionGranted) {
                 Text(
-                    "Android needs your permission to show notifications.",
+                    stringResource(R.string.msg_permission_needed),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 MmmButton(
-                    "Allow notifications",
+                    stringResource(R.string.btn_allow_notifications),
                     onClick = { permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
                     style = MmmButtonStyle.Secondary,
                 )
             }
             if (BuildConfig.DEBUG) {
                 MmmButton(
-                    text = "Copy device token (debug)",
+                    text = stringResource(R.string.btn_copy_token),
                     style = MmmButtonStyle.Secondary,
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
@@ -263,7 +275,7 @@ fun SettingsScreen(
             }
 
             HorizontalDivider()
-            Text("Appearance", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.section_appearance), style = MaterialTheme.typography.titleLarge)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Theme.entries.forEach { option ->
                     FilterChip(
@@ -274,7 +286,7 @@ fun SettingsScreen(
                 }
             }
             Text(
-                "Theme and notification choices apply on this device straight away and are saved to your account.",
+                stringResource(R.string.msg_theme_saved),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

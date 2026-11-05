@@ -29,11 +29,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.ProductDto
 import com.maumela.magnummanagement.data.model.UserDto
 import com.maumela.magnummanagement.ui.components.ErrorView
@@ -75,11 +77,15 @@ fun ProductDetailScreen(
     var showEditor by rememberSaveable { mutableStateOf(false) }
     var showDelete by rememberSaveable { mutableStateOf(false) }
 
+    val msgProductUpdated = stringResource(R.string.msg_product_updated)
+    val decreaseQtyDesc = stringResource(R.string.desc_decrease_qty_generic)
+    val increaseQtyDesc = stringResource(R.string.desc_increase_qty_generic)
+
     LaunchedEffect(state.saved) {
         if (state.saved) {
             showEditor = false
             viewModel.clearFlags()
-            snackbar.showSnackbar("Product updated")
+            snackbar.showSnackbar(msgProductUpdated)
         }
     }
     LaunchedEffect(state.deleted) {
@@ -100,7 +106,7 @@ fun ProductDetailScreen(
     val productState = state.product
 
     MmmScaffold(
-        topBar = { MmmTopBar(title = "Product details", onBack = onBack) },
+        topBar = { MmmTopBar(title = stringResource(R.string.product_details_title), onBack = onBack) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         when (productState) {
@@ -136,13 +142,13 @@ fun ProductDetailScreen(
                                 RatingBar(product.rating)
                             }
                             Text(
-                                "Sold by ${product.sellerName}",
+                                stringResource(R.string.sold_by_format, product.sellerName),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             if (product.availability) {
                                 Text(
-                                    "${product.stockQuantity} in stock",
+                                    stringResource(R.string.stock_quantity_format, product.stockQuantity),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -153,27 +159,27 @@ fun ProductDetailScreen(
 
                             if (availability.canOrder) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    Text("Quantity", style = MaterialTheme.typography.labelLarge)
+                                    Text(stringResource(R.string.label_quantity), style = MaterialTheme.typography.labelLarge)
                                     OutlinedButton(
                                         onClick = { quantity = (shownQuantity - 1).coerceAtLeast(1) },
                                         enabled = shownQuantity > 1,
-                                        modifier = Modifier.semantics { contentDescription = "Decrease quantity" },
+                                        modifier = Modifier.semantics { contentDescription = decreaseQtyDesc },
                                     ) { Text("-") }
                                     Text("$shownQuantity", style = MaterialTheme.typography.titleMedium)
                                     OutlinedButton(
                                         onClick = { quantity = (shownQuantity + 1).coerceAtMost(maxQuantity) },
                                         enabled = shownQuantity < maxQuantity,
-                                        modifier = Modifier.semantics { contentDescription = "Increase quantity" },
+                                        modifier = Modifier.semantics { contentDescription = increaseQtyDesc },
                                     ) { Text("+") }
                                 }
                                 Text(
-                                    "Total: ${Formatters.money(PriceCalculator.lineTotal(product.price, shownQuantity))}",
+                                    stringResource(R.string.total_price_format, Formatters.money(PriceCalculator.lineTotal(product.price, shownQuantity))),
                                     style = MaterialTheme.typography.titleMedium,
                                 )
                             }
 
                             MmmButton(
-                                text = "Add to order",
+                                text = stringResource(R.string.btn_add_to_order),
                                 enabled = availability.canOrder,
                                 modifier = Modifier.fillMaxWidth(),
                                 onClick = {
@@ -181,14 +187,14 @@ fun ProductDetailScreen(
                                     scope.launch { snackbar.showSnackbar(addResultMessage(result, product.name)) }
                                 },
                             )
-                            MmmButton("Go to order", onGoToOrders, style = MmmButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
+                            MmmButton(stringResource(R.string.btn_go_to_order), onGoToOrders, style = MmmButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
 
                             if (isOwner) {
-                                Text("Manage this product", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
+                                Text(stringResource(R.string.section_manage_product), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                                    MmmButton("Edit", { showEditor = true }, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
+                                    MmmButton(stringResource(R.string.btn_edit), { showEditor = true }, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
                                     MmmButton(
-                                        "Delete", { showDelete = true }, style = MmmButtonStyle.Danger,
+                                        stringResource(R.string.btn_delete), { showDelete = true }, style = MmmButtonStyle.Danger,
                                         enabled = !state.isWorking, modifier = Modifier.weight(1f),
                                     )
                                 }
@@ -210,12 +216,12 @@ fun ProductDetailScreen(
                 if (showDelete) {
                     AlertDialog(
                         onDismissRequest = { showDelete = false },
-                        title = { Text("Delete product?") },
-                        text = { Text("\"${product.name}\" will be removed. A product that already has orders cannot be deleted; set it to unavailable instead.") },
+                        title = { Text(stringResource(R.string.dialog_delete_product_title)) },
+                        text = { Text(stringResource(R.string.dialog_delete_product_text, product.name)) },
                         confirmButton = {
-                            TextButton(onClick = { showDelete = false; viewModel.delete() }) { Text("Delete") }
+                            TextButton(onClick = { showDelete = false; viewModel.delete() }) { Text(stringResource(R.string.btn_delete)) }
                         },
-                        dismissButton = { TextButton(onClick = { showDelete = false }) { Text("Cancel") } },
+                        dismissButton = { TextButton(onClick = { showDelete = false }) { Text(stringResource(R.string.btn_cancel)) } },
                     )
                 }
             }

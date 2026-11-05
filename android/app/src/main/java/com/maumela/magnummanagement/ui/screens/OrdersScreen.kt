@@ -33,12 +33,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.IncomingItemDto
+import com.maumela.magnummanagement.data.model.ItemType
 import com.maumela.magnummanagement.data.model.OrderSummaryDto
 import com.maumela.magnummanagement.ui.components.EmptyView
 import com.maumela.magnummanagement.ui.components.ErrorView
@@ -61,11 +64,10 @@ import com.maumela.magnummanagement.viewmodel.DraftUiState
 import com.maumela.magnummanagement.viewmodel.OrderDraftViewModel
 import com.maumela.magnummanagement.viewmodel.OrdersUiState
 import com.maumela.magnummanagement.viewmodel.OrdersViewModel
-import com.maumela.magnummanagement.data.model.ItemType
 
 /**
- * Orders: the draft order being built (checkout), my placed orders, and, for Provider and
- * Business accounts, the incoming requests for their own products and services.
+- Orders: the draft order being built (checkout), my placed orders, and, for Provider and
+- Business accounts, the incoming requests for their own products and services.
  */
 @Composable
 fun OrdersScreen(
@@ -92,7 +94,7 @@ fun OrdersScreen(
         }
     }
 
-    MmmScaffold(topBar = { MmmTopBar(title = "Orders") }) { padding ->
+    MmmScaffold(topBar = { MmmTopBar(title = stringResource(R.string.orders_title)) }) { padding ->
         PullToRefreshBox(
             isRefreshing = false,
             onRefresh = viewModel::refresh,
@@ -116,8 +118,8 @@ fun OrdersScreen(
                 if (isSeller) {
                     item {
                         PrimaryTabRow(selectedTabIndex = tab) {
-                            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("My orders") })
-                            Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("Incoming") })
+                            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.tab_my_orders)) })
+                            Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.tab_incoming)) })
                         }
                     }
                 }
@@ -205,15 +207,15 @@ private fun DraftSection(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Your order", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.section_your_order), style = MaterialTheme.typography.titleLarge)
 
             if (draft.isEmpty) {
                 Text(
-                    "Your order is empty. Add products or services from the marketplace.",
+                    stringResource(R.string.msg_order_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                MmmButton("Browse marketplace", onBrowse, style = MmmButtonStyle.Secondary)
+                MmmButton(stringResource(R.string.btn_browse_marketplace), onBrowse, style = MmmButtonStyle.Secondary)
             } else {
                 draft.items.forEach { item ->
                     DraftItemRow(item, onQuantity = { onQuantity(item.key, it) }, onRemove = { onRemove(item.key) })
@@ -224,18 +226,18 @@ private fun DraftSection(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Estimated total", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.label_estimated_total), style = MaterialTheme.typography.titleMedium)
                     Text(Formatters.money(draft.total), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 }
                 Text(
-                    "The final price is calculated by the server when you submit. Payments are not part of this prototype.",
+                    stringResource(R.string.msg_final_price_calc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 MmmTextField(
                     value = draft.notes,
                     onValueChange = onNotes,
-                    label = "Notes for the seller or provider (optional)",
+                    label = stringResource(R.string.label_order_notes),
                     error = draft.notesError,
                     singleLine = false,
                     minLines = 2,
@@ -245,7 +247,7 @@ private fun DraftSection(
                 val message = draft.errorMessage
                 if (message != null) MessageCard(message, isError = true, modifier = Modifier.fillMaxWidth())
                 MmmButton(
-                    text = "Submit order",
+                    text = stringResource(R.string.btn_submit_order),
                     onClick = onSubmit,
                     loading = draft.isSubmitting,
                     modifier = Modifier.fillMaxWidth(),
@@ -257,11 +259,16 @@ private fun DraftSection(
 
 @Composable
 private fun DraftItemRow(item: DraftItem, onQuantity: (Int) -> Unit, onRemove: () -> Unit) {
+    val soldByPrefix = stringResource(R.string.prefix_sold_by)
+    val providedByPrefix = stringResource(R.string.prefix_provided_by)
+    val decreaseDesc = stringResource(R.string.desc_decrease_qty, item.name)
+    val increaseDesc = stringResource(R.string.desc_increase_qty, item.name)
+
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(item.name, style = MaterialTheme.typography.titleMedium)
         Text(
-            (if (item.itemType == ItemType.PRODUCT) "Sold by " else "Provided by ") + item.sellerName +
-                " · " + Formatters.money(item.unitPrice),
+            (if (item.itemType == ItemType.PRODUCT) soldByPrefix else providedByPrefix) + item.sellerName +
+                    " · " + Formatters.money(item.unitPrice),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -275,20 +282,20 @@ private fun DraftItemRow(item: DraftItem, onQuantity: (Int) -> Unit, onRemove: (
                     OutlinedButton(
                         onClick = { onQuantity(item.quantity - 1) },
                         enabled = item.quantity > 1,
-                        modifier = Modifier.semantics { contentDescription = "Decrease quantity of ${item.name}" },
+                        modifier = Modifier.semantics { contentDescription = decreaseDesc },
                     ) { Text("-") }
                     Text("${item.quantity}", style = MaterialTheme.typography.titleMedium)
                     OutlinedButton(
                         onClick = { onQuantity(item.quantity + 1) },
                         enabled = item.quantity < item.maxQuantity,
-                        modifier = Modifier.semantics { contentDescription = "Increase quantity of ${item.name}" },
+                        modifier = Modifier.semantics { contentDescription = increaseDesc },
                     ) { Text("+") }
                 }
             } else {
-                Text("Quantity: 1", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.label_quantity_one), style = MaterialTheme.typography.bodyMedium)
             }
             Text(Formatters.money(item.lineTotal), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         }
-        TextButton(onClick = onRemove) { Text("Remove") }
+        TextButton(onClick = onRemove) { Text(stringResource(R.string.btn_remove)) }
     }
 }
