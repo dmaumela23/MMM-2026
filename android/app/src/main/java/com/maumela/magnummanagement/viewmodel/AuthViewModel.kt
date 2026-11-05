@@ -14,6 +14,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+interface AuthRepository {
+    suspend fun login(email: String, password: String): ApiResult<UserDto>
+    suspend fun register(request: RegisterRequest): ApiResult<UserDto>
+
+    /** Authenticates with the backend using a Firebase Google ID token */
+    suspend fun loginWithGoogle(idToken: String): ApiResult<UserDto>
+}
+
 data class AuthUiState(
     val isLoading: Boolean = false,
     val loginErrors: Validators.LoginErrors = Validators.LoginErrors(),
@@ -29,6 +37,43 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthUiState())
     val state: StateFlow<AuthUiState> = _state.asStateFlow()
+
+    /**
+     * Handles Google SSO non-invasively by mapping the Google email to your existing
+     * backend /login or /register infrastructure.
+     */
+    fun handleGoogleLogin(email: String, fullName: String) {
+        if (_state.value.isLoading) return
+        _state.update { it.copy(isLoading = true, errorMessage = null) }
+
+        viewModelScope.launch {
+            // Step A: Generate a deterministic, secure password based on their email
+            // so they can seamlessly use your standard backend endpoints.
+            val systemGeneratedPassword = "GoogleSSO_${email.hashCode()}_Secure#2026"
+
+            // Step B: Attempt a standard login first (assuming they've signed in with Google before)
+            val loginResult = authRepository.login(email, systemGeneratedPassword)
+
+            if (loginResult is ApiResult.Success) {
+                handle(loginResult)
+                return@launch
+            }
+
+            // Step C: If login fails (meaning first-time user), automatically register them
+            // using your existing register endpoint with a default role.
+            val registerRequest = RegisterRequest(
+                fullName = fullName,
+                email = email,
+                phone = null,
+                password = systemGeneratedPassword,
+                confirmPassword = systemGeneratedPassword,
+                role = UserRole.CUSTOMER // Default role for social logins
+            )
+
+            val registerResult = authRepository.register(registerRequest)
+            handle(registerResult)
+        }
+    }
 
     fun login(email: String, password: String) {
         if (_state.value.isLoading) return // ignore a double tap

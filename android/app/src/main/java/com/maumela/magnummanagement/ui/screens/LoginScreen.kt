@@ -1,5 +1,6 @@
 package com.maumela.magnummanagement.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,13 +19,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maumela.magnummanagement.ui.components.BrandHeader
 import com.maumela.magnummanagement.ui.components.MessageCard
@@ -32,6 +40,9 @@ import com.maumela.magnummanagement.ui.components.MmmButton
 import com.maumela.magnummanagement.ui.components.MmmScaffold
 import com.maumela.magnummanagement.ui.components.MmmTextField
 import com.maumela.magnummanagement.viewmodel.AuthViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 /** [notice] is a non-error message such as "Your session expired. Please log in again." */
 @Composable
@@ -45,6 +56,9 @@ fun LoginScreen(
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
 
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     LaunchedEffect(state.authenticatedUser) {
         if (state.authenticatedUser != null) {
             viewModel.onAuthenticationHandled()
@@ -54,6 +68,42 @@ fun LoginScreen(
 
     val serverError = state.errorMessage
     val errors = state.loginErrors
+
+    fun launchGoogleSignIn() {
+        val rawNonce = UUID.randomUUID().toString()
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId("123833307045-rtgeot50v3iud32hk3pga1ulnkoj3q5o.apps.googleusercontent.com")
+            .setNonce(rawNonce)
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        val credentialManager = CredentialManager.create(context)
+
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                val result = credentialManager.getCredential(
+                    request = request,
+                    context = context
+                )
+                val credential = result.credential
+                if (credential is androidx.credentials.CustomCredential &&
+                    credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                ) {
+                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                    val googleEmail = googleIdTokenCredential.id
+                    val fullName = googleIdTokenCredential.displayName ?: "Google User"
+
+                    viewModel.handleGoogleLogin(googleEmail, fullName)
+                }
+            } catch (e: GetCredentialException) {
+                Log.e("GoogleSignIn", "Google Sign-in failed", e)
+            }
+        }
+    }
 
     MmmScaffold { padding ->
         Column(
@@ -99,6 +149,15 @@ fun LoginScreen(
                 loading = state.isLoading,
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            // Google SSO Button
+            MmmButton(
+                text = "Sign in with Google",
+                onClick = { launchGoogleSignIn() },
+                loading = state.isLoading,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
             TextButton(onClick = onRegister, enabled = !state.isLoading) {
                 Text("New to MMM? Create an account")
             }
