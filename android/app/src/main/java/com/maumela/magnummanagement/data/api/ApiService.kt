@@ -1,5 +1,6 @@
 package com.maumela.magnummanagement.data.api
 
+import com.maumela.magnummanagement.data.model.GoogleLoginRequest
 import com.maumela.magnummanagement.data.model.AuthResponse
 import com.maumela.magnummanagement.data.model.EnergyPlansResponse
 import com.maumela.magnummanagement.data.model.EnergyReportsResponse
