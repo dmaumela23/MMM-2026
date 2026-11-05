@@ -3,12 +3,14 @@ import pytest
 from google.auth.exceptions import TransportError
 from sqlalchemy import func, select
 
-from app.config import settings
+from app.config import parse_client_ids, settings
 from app.database import SessionLocal
 from app.models import EnergyUsage, User, UserSettings
 from app.services import auth_service
 
 CLIENT_ID = "test-client.apps.googleusercontent.com"
+OTHER_CLIENT_ID = "other-client.apps.googleusercontent.com"
+STRANGER_CLIENT_ID = "someone-elses-app.apps.googleusercontent.com"
 GOOD_TOKEN = "good-token-0123456789-abcdefghij"
 BAD_TOKEN = "bad-token-0123456789-abcdefghij"
 PASSWORD = "Passw0rd123"
@@ -31,6 +33,7 @@ def make_claims(**overrides) -> dict:
 @pytest.fixture(autouse=True)
 def google_is_configured(monkeypatch):
     monkeypatch.setattr(settings, "google_client_id", CLIENT_ID)
+    monkeypatch.setattr(settings, "google_client_ids", None)
 
 
 @pytest.fixture
@@ -38,8 +41,7 @@ def google(monkeypatch):
     """Stands in for Google. Tokens starting with 'bad' are rejected the way Google's library rejects them."""
     state = {"claims": make_claims(), "error": None}
 
-    def fake_verify(token, client_id):
-        assert client_id == CLIENT_ID  # the server must check the token against OUR client id
+    def fake_verify(token):
         if state["error"] is not None:
             raise state["error"]
         if token.startswith("bad"):
@@ -52,6 +54,11 @@ def google(monkeypatch):
 
 def sign_in(client, token=GOOD_TOKEN, **extra):
     return client.post("/api/auth/google", json={"id_token": token, **extra})
+
+
+def count_users() -> int:
+    with SessionLocal() as db:
+        return db.scalar(select(func.count()).select_from(User))
 
 
 # ------------------------------------------------------------------ new accounts
@@ -86,8 +93,7 @@ def test_email_is_matched_in_lower_case_and_a_second_sign_in_reuses_the_account(
     second = sign_in(client).json()["user"]
     assert first["id"] == second["id"]
     assert first["email"] == "gina.google@example.com"
-    with SessionLocal() as db:
-        assert db.scalar(select(func.count()).select_from(User)) == 1
+    assert count_users() == 1
 
 
 def test_missing_name_falls_back_to_the_email_prefix(client, google):
@@ -132,19 +138,61 @@ def test_unverified_or_missing_email_is_rejected(client, google, claims):
     response = sign_in(client)
     assert response.status_code == 401
     assert "not verified" in response.json()["detail"]
-    with SessionLocal() as db:
-        assert db.scalar(select(func.count()).select_from(User)) == 0
+    assert count_users() == 0
 
 
 def test_rejected_token_never_creates_an_account(client, google):
     sign_in(client, token=BAD_TOKEN)
-    with SessionLocal() as db:
-        assert db.scalar(select(func.count()).select_from(User)) == 0
+    assert count_users() == 0
+
+
+# ------------------------------------------------------------------ audience (which app the token is for)
+def test_token_issued_for_another_app_is_rejected(client, google):
+    google["claims"] = make_claims(aud=STRANGER_CLIENT_ID)
+    response = sign_in(client)
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Google sign-in failed. Please try again."}
+    assert count_users() == 0
+
+
+def test_token_without_an_audience_is_rejected(client, google):
+    claims = make_claims()
+    del claims["aud"]
+    google["claims"] = claims
+    assert sign_in(client).status_code == 401
+
+
+def test_several_client_ids_can_be_accepted(client, google, monkeypatch):
+    monkeypatch.setattr(settings, "google_client_id", None)
+    monkeypatch.setattr(settings, "google_client_ids", f"{OTHER_CLIENT_ID}, {CLIENT_ID}")
+    google["claims"] = make_claims(aud=OTHER_CLIENT_ID)
+    assert sign_in(client).status_code == 200
+    google["claims"] = make_claims(aud=CLIENT_ID)
+    assert sign_in(client).status_code == 200
+    google["claims"] = make_claims(aud=STRANGER_CLIENT_ID)
+    assert sign_in(client).status_code == 401
+
+
+@pytest.mark.parametrize(
+    "values, expected",
+    [
+        ((None, None), []),
+        (("", "   "), []),
+        (("a", None), ["a"]),
+        (("a, b", None), ["a", "b"]),
+        (("a;b  c", None), ["a", "b", "c"]),
+        (("a,,b,", "b, c"), ["a", "b", "c"]),
+        (("one", "two"), ["one", "two"]),
+    ],
+)
+def test_client_id_lists_are_parsed_from_the_environment_values(values, expected):
+    assert parse_client_ids(*values) == expected
 
 
 # ------------------------------------------------------------------ configuration and availability
 def test_returns_503_when_google_sign_in_is_not_configured(client, google, monkeypatch):
     monkeypatch.setattr(settings, "google_client_id", None)
+    monkeypatch.setattr(settings, "google_client_ids", None)
     response = sign_in(client)
     assert response.status_code == 503
     assert response.json() == {"detail": "Google sign-in is not available right now."}
