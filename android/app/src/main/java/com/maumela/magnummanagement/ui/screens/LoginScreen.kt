@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -31,16 +30,15 @@ import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.maumela.magnummanagement.ui.components.BrandHeader
 import com.maumela.magnummanagement.ui.components.MessageCard
 import com.maumela.magnummanagement.ui.components.MmmButton
 import com.maumela.magnummanagement.ui.components.MmmScaffold
 import com.maumela.magnummanagement.ui.components.MmmTextField
 import com.maumela.magnummanagement.viewmodel.AuthViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -59,6 +57,8 @@ fun LoginScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
+    val webClientId = "123833307045-rtgeot50v3iud32hk3pga1ulnkoj3q5o.apps.googleusercontent.com"
+
     LaunchedEffect(state.authenticatedUser) {
         if (state.authenticatedUser != null) {
             viewModel.onAuthenticationHandled()
@@ -68,11 +68,12 @@ fun LoginScreen(
 
     val serverError = state.errorMessage
     val errors = state.loginErrors
+
     fun launchGoogleSignIn() {
         val rawNonce = UUID.randomUUID().toString()
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
-            .setServerClientId("123833307045-rtgeot50v3iud32hk3pga1ulnkoj3q5o.apps.googleusercontent.com")
+            .setServerClientId(webClientId)
             .setNonce(rawNonce)
             .build()
 
@@ -82,7 +83,7 @@ fun LoginScreen(
 
         val credentialManager = CredentialManager.create(context)
 
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch {
             try {
                 val result = credentialManager.getCredential(
                     request = request,
@@ -92,12 +93,8 @@ fun LoginScreen(
                 if (credential is androidx.credentials.CustomCredential &&
                     credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
                 ) {
-                    val googleIdTokenCredential =
-                        GoogleIdTokenCredential.createFrom(credential.data)
-                    val idToken = googleIdTokenCredential.idToken
-
-                    // Call the ViewModel method that talks to your real backend endpoint
-                    viewModel.googleSignIn(idToken)
+                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                    viewModel.googleSignIn(googleIdTokenCredential.idToken)
                 }
             } catch (e: GetCredentialException) {
                 Log.e("GoogleSignIn", "Google Sign-in failed", e)
@@ -105,133 +102,60 @@ fun LoginScreen(
         }
     }
 
-    @Composable
-    fun LoginScreen(
-        viewModel: AuthViewModel,
-        notice: String?,
-        onAuthenticated: () -> Unit,
-        onRegister: () -> Unit,
-    ) {
-        val state by viewModel.state.collectAsStateWithLifecycle()
-        var email by rememberSaveable { mutableStateOf("") }
-        var password by rememberSaveable { mutableStateOf("") }
+    MmmScaffold { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Spacer(Modifier.height(24.dp))
+            BrandHeader(subtitle = "Products · Services · Energy")
+            Spacer(Modifier.height(16.dp))
+            Text("Log in", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.align(Alignment.Start))
 
-        val context = LocalContext.current
-        val coroutineScope = rememberCoroutineScope()
+            if (notice != null) MessageCard(notice, isError = false, modifier = Modifier.fillMaxWidth())
+            if (serverError != null) MessageCard(serverError, isError = true, modifier = Modifier.fillMaxWidth())
 
-        val webClientId = "123833307045-rtgeot50v3iud32hk3pga1ulnkoj3q5o.apps.googleusercontent.com"
+            MmmTextField(
+                value = email,
+                onValueChange = { email = it; viewModel.clearErrors() },
+                label = "Email",
+                error = errors.email,
+                keyboardType = KeyboardType.Email,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            MmmTextField(
+                value = password,
+                onValueChange = { password = it; viewModel.clearErrors() },
+                label = "Password",
+                error = errors.password,
+                isPassword = true,
+                imeAction = ImeAction.Done,
+                onImeAction = { viewModel.login(email, password) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            MmmButton(
+                text = "Log in",
+                onClick = { viewModel.login(email, password) },
+                loading = state.isLoading,
+                modifier = Modifier.fillMaxWidth(),
+            )
 
-        LaunchedEffect(state.authenticatedUser) {
-            if (state.authenticatedUser != null) {
-                viewModel.onAuthenticationHandled()
-                onAuthenticated()
-            }
-        }
+            // Google SSO Button
+            MmmButton(
+                text = "Sign in with Google",
+                onClick = { launchGoogleSignIn() },
+                loading = state.isLoading,
+                modifier = Modifier.fillMaxWidth(),
+            )
 
-        val serverError = state.errorMessage
-        val errors = state.loginErrors
-
-        fun launchGoogleSignIn() {
-            val rawNonce = UUID.randomUUID().toString()
-            val googleIdOption = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(false)
-                .setServerClientId(webClientId)
-                .setNonce(rawNonce)
-                .build()
-
-            val request = GetCredentialRequest.Builder()
-                .addCredentialOption(googleIdOption)
-                .build()
-
-            val credentialManager = CredentialManager.create(context)
-
-            coroutineScope.launch(Dispatchers.IO) {
-                try {
-                    val result = credentialManager.getCredential(
-                        request = request,
-                        context = context
-                    )
-                    val credential = result.credential
-                    if (credential is androidx.credentials.CustomCredential &&
-                        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-                    ) {
-                        val googleIdTokenCredential =
-                            GoogleIdTokenCredential.createFrom(credential.data)
-                        viewModel.googleSignIn(googleIdTokenCredential.idToken)
-                    }
-                } catch (e: GetCredentialException) {
-                    Log.e("GoogleSignIn", "Google Sign-in failed", e)
-                }
-            }
-        }
-
-        MmmScaffold { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .imePadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Spacer(Modifier.height(24.dp))
-                BrandHeader(subtitle = "Products · Services · Energy")
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    "Log in",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                if (notice != null) MessageCard(
-                    notice,
-                    isError = false,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                if (serverError != null) MessageCard(
-                    serverError,
-                    isError = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                MmmTextField(
-                    value = email,
-                    onValueChange = { email = it; viewModel.clearErrors() },
-                    label = "Email",
-                    error = errors.email,
-                    keyboardType = KeyboardType.Email,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                MmmTextField(
-                    value = password,
-                    onValueChange = { password = it; viewModel.clearErrors() },
-                    label = "Password",
-                    error = errors.password,
-                    isPassword = true,
-                    imeAction = ImeAction.Done,
-                    onImeAction = { viewModel.login(email, password) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                MmmButton(
-                    text = "Log in",
-                    onClick = { viewModel.login(email, password) },
-                    loading = state.isLoading,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                // Google SSO Button
-                MmmButton(
-                    text = "Sign in with Google",
-                    onClick = { launchGoogleSignIn() },
-                    loading = state.isLoading,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                TextButton(onClick = onRegister, enabled = !state.isLoading) {
-                    Text("New to MMM? Create an account")
-                }
+            TextButton(onClick = onRegister, enabled = !state.isLoading) {
+                Text("New to MMM? Create an account")
             }
         }
     }
