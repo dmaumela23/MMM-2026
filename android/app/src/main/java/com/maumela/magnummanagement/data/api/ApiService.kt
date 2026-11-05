@@ -1,5 +1,6 @@
 package com.maumela.magnummanagement.data.api
 
+import com.maumela.magnummanagement.data.model.GoogleLoginRequest
 import com.maumela.magnummanagement.data.model.AuthResponse
 import com.maumela.magnummanagement.data.model.EnergyPlansResponse
 import com.maumela.magnummanagement.data.model.EnergyReportsResponse
@@ -41,11 +42,15 @@ import retrofit2.http.Query
 interface ApiService {
 
     // ---- Auth
+// ---- Auth
     @POST("auth/register")
     suspend fun register(@Body body: RegisterRequest): AuthResponse
 
     @POST("auth/login")
     suspend fun login(@Body body: LoginRequest): AuthResponse
+
+    @POST("auth/google")
+    suspend fun googleSignIn(@Body body: GoogleLoginRequest): AuthResponse
 
     @GET("auth/me")
     suspend fun me(): UserDto

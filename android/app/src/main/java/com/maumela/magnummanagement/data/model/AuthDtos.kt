@@ -20,6 +20,12 @@ data class LoginRequest(
 )
 
 @Serializable
+data class GoogleLoginRequest(
+    val token: String,
+    val role: String = "CUSTOMER"
+)
+
+@Serializable
 data class UserDto(
     val id: Int,
     @SerialName("full_name") val fullName: String,

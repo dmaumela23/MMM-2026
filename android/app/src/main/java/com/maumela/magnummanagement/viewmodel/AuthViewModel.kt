@@ -30,6 +30,20 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     private val _state = MutableStateFlow(AuthUiState())
     val state: StateFlow<AuthUiState> = _state.asStateFlow()
 
+    /**
+     * Handles Google SSO by sending the secure Google ID token directly
+     * to the backend's /api/auth/google endpoint.
+     */
+    fun googleSignIn(idToken: String, role: String = "CUSTOMER") {
+        if (_state.value.isLoading) return
+        _state.update { it.copy(isLoading = true, errorMessage = null) }
+
+        viewModelScope.launch {
+            val result = authRepository.googleSignIn(idToken, role)
+            handle(result)
+        }
+    }
+
     fun login(email: String, password: String) {
         if (_state.value.isLoading) return // ignore a double tap
         val errors = Validators.login(email, password)

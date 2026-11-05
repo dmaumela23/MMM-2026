@@ -30,9 +30,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.UserDto
 import com.maumela.magnummanagement.ui.components.ErrorView
 import com.maumela.magnummanagement.ui.components.LoadingView
@@ -48,8 +50,8 @@ import com.maumela.magnummanagement.utils.UiState
 import com.maumela.magnummanagement.viewmodel.OrderDetailViewModel
 
 /**
- * One order. The customer can cancel it while every line is still pending. The seller or provider of a
- * line can move it forward (Accept, Start work, Mark complete) or cancel it. The server checks every change.
+- One order. The customer can cancel it while every line is still pending. The seller or provider of a
+- line can move it forward (Accept, Start work, Mark complete) or cancel it. The server checks every change.
  */
 @Composable
 fun OrderDetailScreen(
@@ -72,7 +74,7 @@ fun OrderDetailScreen(
     val orderState = state.order
 
     MmmScaffold(
-        topBar = { MmmTopBar(title = "Order details", onBack = onBack) },
+        topBar = { MmmTopBar(title = stringResource(R.string.order_details_title), onBack = onBack) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         when (orderState) {
@@ -95,11 +97,11 @@ fun OrderDetailScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("Order #${order.id}", style = MaterialTheme.typography.headlineMedium)
+                        Text(stringResource(R.string.order_number_format, order.id), style = MaterialTheme.typography.headlineMedium)
                         OrderStatusChip(order.status)
                     }
                     Text(
-                        "Placed ${Formatters.dateTime(order.createdAt)}",
+                        stringResource(R.string.placed_at_format, Formatters.dateTime(order.createdAt)),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -138,7 +140,7 @@ fun OrderDetailScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Text("Total", style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(R.string.label_total), style = MaterialTheme.typography.titleMedium)
                                 Text(
                                     Formatters.money(order.totalAmount),
                                     style = MaterialTheme.typography.titleLarge,
@@ -149,13 +151,13 @@ fun OrderDetailScreen(
                     }
 
                     if (!order.notes.isNullOrBlank()) {
-                        Text("Notes", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.label_notes), style = MaterialTheme.typography.titleMedium)
                         Text(order.notes, style = MaterialTheme.typography.bodyMedium)
                     }
 
                     if (canCancel) {
                         MmmButton(
-                            text = "Cancel order",
+                            text = stringResource(R.string.btn_cancel_order),
                             onClick = { showCancel = true },
                             style = MmmButtonStyle.Danger,
                             loading = state.isWorking,
@@ -163,7 +165,7 @@ fun OrderDetailScreen(
                         )
                     }
                     Text(
-                        "No payment is taken in this prototype: orders are recorded only.",
+                        stringResource(R.string.msg_no_payment_prototype),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -172,12 +174,18 @@ fun OrderDetailScreen(
                 if (showCancel) {
                     AlertDialog(
                         onDismissRequest = { showCancel = false },
-                        title = { Text("Cancel this order?") },
-                        text = { Text("Every item will be cancelled and any reserved stock released.") },
+                        title = { Text(stringResource(R.string.dialog_cancel_order_title)) },
+                        text = { Text(stringResource(R.string.dialog_cancel_order_text)) },
                         confirmButton = {
-                            TextButton(onClick = { showCancel = false; viewModel.cancelOrder() }) { Text("Cancel order") }
+                            TextButton(onClick = { showCancel = false; viewModel.cancelOrder() }) {
+                                Text(stringResource(R.string.btn_cancel_order))
+                            }
                         },
-                        dismissButton = { TextButton(onClick = { showCancel = false }) { Text("Keep order") } },
+                        dismissButton = {
+                            TextButton(onClick = { showCancel = false }) {
+                                Text(stringResource(R.string.btn_keep_order))
+                            }
+                        },
                     )
                 }
             }

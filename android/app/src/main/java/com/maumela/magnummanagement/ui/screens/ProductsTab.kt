@@ -12,7 +12,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.ProductDto
 import com.maumela.magnummanagement.ui.components.EmptyView
 import com.maumela.magnummanagement.ui.components.ErrorView
@@ -32,14 +34,14 @@ fun ProductsTab(
     modifier: Modifier = Modifier,
 ) {
     when (state) {
-        UiState.Loading -> LoadingView(modifier, message = "Loading products...")
+        UiState.Loading -> LoadingView(modifier, message = stringResource(R.string.loading_products))
         is UiState.Failure -> ErrorView(state.error.message, modifier, onRetry = onRefresh)
         is UiState.Success -> Column(modifier) {
             if (state.isStale) StaleBanner(onRetry = onRefresh)
             if (state.data.isEmpty()) {
                 EmptyView(
-                    title = "No products found",
-                    message = if (isFiltered) "Try a different search or clear your filters." else "There are no products yet.",
+                    title = stringResource(R.string.empty_products_found_title),
+                    message = if (isFiltered) stringResource(R.string.empty_products_filtered_message) else stringResource(R.string.empty_products_none_message),
                     modifier = Modifier.weight(1f),
                 )
             } else {

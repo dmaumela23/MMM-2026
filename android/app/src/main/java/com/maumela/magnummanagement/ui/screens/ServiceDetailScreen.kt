@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -27,13 +28,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.ServiceDto
 import com.maumela.magnummanagement.data.model.UserDto
 import com.maumela.magnummanagement.ui.components.ErrorView
 import com.maumela.magnummanagement.ui.components.ListingEditorSheet
+import com.maumela.magnummanagement.ui.components.ListingImage
 import com.maumela.magnummanagement.ui.components.LoadingView
 import com.maumela.magnummanagement.ui.components.MmmButton
 import com.maumela.magnummanagement.ui.components.MmmButtonStyle
@@ -59,7 +63,7 @@ fun ServiceDetailScreen(
     viewModel: ServiceDetailViewModel,
     user: UserDto?,
     onBack: () -> Unit,
-    onAddToOrder: (ServiceDto) -> AddResult,
+    onRequestService: (ServiceDto) -> AddResult,
     onGoToOrders: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -68,11 +72,13 @@ fun ServiceDetailScreen(
     var showEditor by rememberSaveable { mutableStateOf(false) }
     var showDelete by rememberSaveable { mutableStateOf(false) }
 
+    val msgServiceUpdated = stringResource(R.string.msg_service_updated)
+
     LaunchedEffect(state.saved) {
         if (state.saved) {
             showEditor = false
             viewModel.clearFlags()
-            snackbar.showSnackbar("Service updated")
+            snackbar.showSnackbar(msgServiceUpdated)
         }
     }
     LaunchedEffect(state.deleted) {
@@ -92,7 +98,7 @@ fun ServiceDetailScreen(
     val serviceState = state.service
 
     MmmScaffold(
-        topBar = { MmmTopBar(title = "Service details", onBack = onBack) },
+        topBar = { MmmTopBar(title = stringResource(R.string.service_details_title), onBack = onBack) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         when (serviceState) {
@@ -105,7 +111,10 @@ fun ServiceDetailScreen(
 
                 Column(modifier = Modifier.fillMaxSize().padding(padding)) {
                     if (serviceState.isStale) StaleBanner(onRetry = viewModel::load)
-                    Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                    Column(
+                        modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                    ) {
+
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text(
                                 service.category.uppercase(),
@@ -123,41 +132,36 @@ fun ServiceDetailScreen(
                                 RatingBar(service.rating)
                             }
                             Text(
-                                "Provided by ${service.providerName}",
+                                stringResource(R.string.provided_by_format, service.providerName),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
-                                DisplayRules.deliveryLabel(service.deliveryDays),
+                                stringResource(R.string.delivery_days_format, service.deliveryDays),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             if (service.description.isNotBlank()) {
                                 Text(service.description, style = MaterialTheme.typography.bodyLarge)
                             }
-                            Text(
-                                "Quantity is always 1. Add notes for the provider when you place your order.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
 
                             MmmButton(
-                                text = "Add to order",
+                                text = stringResource(R.string.btn_request_service),
                                 enabled = availability.canOrder,
                                 modifier = Modifier.fillMaxWidth(),
                                 onClick = {
-                                    val result = onAddToOrder(service)
+                                    val result = onRequestService(service)
                                     scope.launch { snackbar.showSnackbar(addResultMessage(result, service.name)) }
                                 },
                             )
-                            MmmButton("Go to order", onGoToOrders, style = MmmButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
+                            MmmButton(stringResource(R.string.btn_go_to_order), onGoToOrders, style = MmmButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
 
                             if (isOwner) {
-                                Text("Manage this service", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
+                                Text(stringResource(R.string.section_manage_service), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                                    MmmButton("Edit", { showEditor = true }, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
+                                    MmmButton(stringResource(R.string.btn_edit), { showEditor = true }, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
                                     MmmButton(
-                                        "Delete", { showDelete = true }, style = MmmButtonStyle.Danger,
+                                        stringResource(R.string.btn_delete), { showDelete = true }, style = MmmButtonStyle.Danger,
                                         enabled = !state.isWorking, modifier = Modifier.weight(1f),
                                     )
                                 }
@@ -179,12 +183,12 @@ fun ServiceDetailScreen(
                 if (showDelete) {
                     AlertDialog(
                         onDismissRequest = { showDelete = false },
-                        title = { Text("Delete service?") },
-                        text = { Text("\"${service.name}\" will be removed. A service that already has orders cannot be deleted; set it to unavailable instead.") },
+                        title = { Text(stringResource(R.string.dialog_delete_service_title)) },
+                        text = { Text(stringResource(R.string.dialog_delete_service_text, service.name)) },
                         confirmButton = {
-                            TextButton(onClick = { showDelete = false; viewModel.delete() }) { Text("Delete") }
+                            TextButton(onClick = { showDelete = false; viewModel.delete() }) { Text(stringResource(R.string.btn_delete)) }
                         },
-                        dismissButton = { TextButton(onClick = { showDelete = false }) { Text("Cancel") } },
+                        dismissButton = { TextButton(onClick = { showDelete = false }) { Text(stringResource(R.string.btn_cancel)) } },
                     )
                 }
             }

@@ -33,9 +33,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.ui.components.ListingEditorSheet
 import com.maumela.magnummanagement.ui.components.MmmButton
 import com.maumela.magnummanagement.ui.components.MmmButtonStyle
@@ -83,7 +85,7 @@ fun ProfileScreen(
     val services = state.services
 
     MmmScaffold(
-        topBar = { MmmTopBar(title = "Profile") },
+        topBar = { MmmTopBar(title = stringResource(R.string.profile_title)) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Column(
@@ -95,7 +97,7 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             if (account == null) {
-                Text("You are not logged in.", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.msg_not_logged_in), style = MaterialTheme.typography.bodyLarge)
             } else {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -125,61 +127,61 @@ fun ProfileScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 ) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        InfoRow("Email", account.email)
-                        InfoRow("Phone", account.phone ?: "Not provided")
-                        InfoRow("Account type", Formatters.roleLabel(account.role.name))
-                        InfoRow("Member since", Formatters.date(account.createdAt))
+                        InfoRow(stringResource(R.string.label_email_info), account.email)
+                        InfoRow(stringResource(R.string.label_phone_info), account.phone ?: stringResource(R.string.val_not_provided))
+                        InfoRow(stringResource(R.string.label_account_type_info), Formatters.roleLabel(account.role.name))
+                        InfoRow(stringResource(R.string.label_member_since), Formatters.date(account.createdAt))
                         HorizontalDivider()
                         Row(
                             modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenOrders),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            Text("Orders placed", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.label_orders_placed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(state.orderCount?.toString() ?: "-", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
 
                 if (Permissions.canCreateProducts(role)) {
-                    SectionHeader("My products", horizontalPadding = 0.dp)
+                    SectionHeader(stringResource(R.string.section_my_products), horizontalPadding = 0.dp)
                     when (products) {
-                        UiState.Loading -> Text("Loading...", style = MaterialTheme.typography.bodyMedium)
+                        UiState.Loading -> Text(stringResource(R.string.loading_generic), style = MaterialTheme.typography.bodyMedium)
                         is UiState.Failure -> Text(products.error.message, color = MaterialTheme.colorScheme.error)
                         is UiState.Success -> {
-                            if (products.data.isEmpty()) Text("You have not added any products yet.", style = MaterialTheme.typography.bodyMedium)
+                            if (products.data.isEmpty()) Text(stringResource(R.string.empty_my_products), style = MaterialTheme.typography.bodyMedium)
                             products.data.forEach { product ->
                                 ListingRow(
                                     title = product.name,
-                                    subtitle = "${Formatters.money(product.price)} · ${product.stockQuantity} in stock",
+                                    subtitle = stringResource(R.string.product_subtitle_format, Formatters.money(product.price), product.stockQuantity),
                                     onClick = { onProduct(product.id) },
                                 )
                             }
                         }
                     }
-                    MmmButton("Add product", { editorKind = ListingKind.PRODUCT.name }, style = MmmButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
+                    MmmButton(stringResource(R.string.btn_add_product), { editorKind = ListingKind.PRODUCT.name }, style = MmmButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
                 }
 
                 if (Permissions.canCreateServices(role)) {
-                    SectionHeader("My services", horizontalPadding = 0.dp)
+                    SectionHeader(stringResource(R.string.section_my_services), horizontalPadding = 0.dp)
                     when (services) {
-                        UiState.Loading -> Text("Loading...", style = MaterialTheme.typography.bodyMedium)
+                        UiState.Loading -> Text(stringResource(R.string.loading_generic), style = MaterialTheme.typography.bodyMedium)
                         is UiState.Failure -> Text(services.error.message, color = MaterialTheme.colorScheme.error)
                         is UiState.Success -> {
-                            if (services.data.isEmpty()) Text("You have not added any services yet.", style = MaterialTheme.typography.bodyMedium)
+                            if (services.data.isEmpty()) Text(stringResource(R.string.empty_my_services), style = MaterialTheme.typography.bodyMedium)
                             services.data.forEach { service ->
                                 ListingRow(
                                     title = service.name,
-                                    subtitle = "${Formatters.money(service.price)} · ${service.deliveryDays} days",
+                                    subtitle = stringResource(R.string.service_subtitle_format, Formatters.money(service.price), service.deliveryDays),
                                     onClick = { onService(service.id) },
                                 )
                             }
                         }
                     }
-                    MmmButton("Add service", { editorKind = ListingKind.SERVICE.name }, style = MmmButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
+                    MmmButton(stringResource(R.string.btn_add_service), { editorKind = ListingKind.SERVICE.name }, style = MmmButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
                 }
 
-                MmmButton("Settings", onSettings, style = MmmButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
-                MmmButton("Log out", onLogout, style = MmmButtonStyle.Danger, modifier = Modifier.fillMaxWidth())
+                MmmButton(stringResource(R.string.action_settings), onSettings, style = MmmButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
+                MmmButton(stringResource(R.string.btn_log_out), onLogout, style = MmmButtonStyle.Danger, modifier = Modifier.fillMaxWidth())
             }
         }
     }

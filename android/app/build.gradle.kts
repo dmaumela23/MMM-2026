@@ -13,14 +13,15 @@ if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
 
-// Backend URL. Default = Android emulator -> your computer. Override in android/local.properties:
+// Backend URL. Default = the hosted API. For local development override it in android/local.properties:
+//   MMM_BASE_URL=http://10.0.2.2:8000/api/           (Android emulator -> your computer)
 //   MMM_BASE_URL=http://192.168.1.50:8000/api/      (physical phone over Wi-Fi)
 //   MMM_BASE_URL=http://localhost:8000/api/          (physical phone with: adb reverse tcp:8000 tcp:8000)
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
-val mmmBaseUrl: String = (localProperties.getProperty("MMM_BASE_URL") ?: "https://MMM-2026.onrender.com/api/")
+val mmmBaseUrl: String = (localProperties.getProperty("MMM_BASE_URL") ?: "https://mmm-2026.onrender.com/api/")
     .trim()
     .let { if (it.endsWith("/")) it else "$it/" } // Retrofit requires a trailing slash
 
@@ -78,6 +79,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
+
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("androidx.appcompat:appcompat:1.6.1") // or newer
 
     // REST client (required external library): Retrofit + OkHttp + kotlinx.serialization
     implementation(libs.retrofit)

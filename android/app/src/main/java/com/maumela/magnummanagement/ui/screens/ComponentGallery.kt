@@ -17,7 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.EnergyStatus
 import com.maumela.magnummanagement.data.model.ItemStatus
 import com.maumela.magnummanagement.data.model.MonthlyReportDto
@@ -77,7 +79,7 @@ fun ComponentGallery() {
         (0 until 30).map {
             UsagePointDto(
                 date = LocalDate.of(2026, 9, 1).plusDays(it.toLong()).toString(),
-                kwh = 12.0 + (it * 7 % 9), estimatedCost = BigDecimal("31.20"), isSimulated = true,
+                kwh = 12.0 + (it % 9), estimatedCost = BigDecimal("31.20"), isSimulated = true,
             )
         }
     }
@@ -89,31 +91,31 @@ fun ComponentGallery() {
         )
     }
 
-    Scaffold(topBar = { MmmTopBar(title = "Component gallery", onBack = {}) }) { padding ->
+    Scaffold(topBar = { MmmTopBar(title = stringResource(R.string.component_gallery_title), onBack = {}) }) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item { Text("Sector tiles", style = MaterialTheme.typography.titleMedium) }
+            item { Text(stringResource(R.string.gallery_sector_tiles), style = MaterialTheme.typography.titleMedium) }
             items(SectorRegistry.all) { info -> SectorTile(info, onClick = {}, modifier = Modifier.fillMaxWidth()) }
 
-            item { Text("Buttons", style = MaterialTheme.typography.titleMedium) }
+            item { Text(stringResource(R.string.gallery_buttons), style = MaterialTheme.typography.titleMedium) }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    MmmButton("Primary", {})
-                    MmmButton("Secondary", {}, style = MmmButtonStyle.Secondary)
-                    MmmButton("Delete", {}, style = MmmButtonStyle.Danger)
+                    MmmButton(stringResource(R.string.btn_primary), {})
+                    MmmButton(stringResource(R.string.btn_secondary), {}, style = MmmButtonStyle.Secondary)
+                    MmmButton(stringResource(R.string.btn_delete_gallery), {}, style = MmmButtonStyle.Danger)
                 }
             }
-            item { MmmButton("Saving", {}, loading = true) }
-            item { MmmButton("Disabled", {}, enabled = false) }
+            item { MmmButton(stringResource(R.string.btn_saving), {}, loading = true) }
+            item { MmmButton(stringResource(R.string.btn_disabled), {}, enabled = false) }
 
-            item { Text("Text fields", style = MaterialTheme.typography.titleMedium) }
-            item { MmmTextField(email, { email = it }, "Email", error = "Enter a valid email address", modifier = Modifier.fillMaxWidth()) }
-            item { MmmTextField(password, { password = it }, "Password", isPassword = true, helper = "At least 8 characters", modifier = Modifier.fillMaxWidth()) }
+            item { Text(stringResource(R.string.gallery_text_fields), style = MaterialTheme.typography.titleMedium) }
+            item { MmmTextField(email, { email = it }, stringResource(R.string.label_email), error = stringResource(R.string.error_invalid_email), modifier = Modifier.fillMaxWidth()) }
+            item { MmmTextField(password, { password = it }, stringResource(R.string.label_password), isPassword = true, helper = stringResource(R.string.helper_password_length), modifier = Modifier.fillMaxWidth()) }
 
-            item { Text("Status chips and rating", style = MaterialTheme.typography.titleMedium) }
+            item { Text(stringResource(R.string.gallery_status_chips), style = MaterialTheme.typography.titleMedium) }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ItemStatusChip(ItemStatus.PENDING)
@@ -129,25 +131,25 @@ fun ComponentGallery() {
             }
             item { RatingBar(4.6) }
 
-            item { Text("Cards", style = MaterialTheme.typography.titleMedium) }
+            item { Text(stringResource(R.string.gallery_cards), style = MaterialTheme.typography.titleMedium) }
             item { ProductCard(product, onClick = {}, onAddToOrder = {}) }
             item { ServiceCard(service, onClick = {}, onRequest = {}) }
 
-            item { Text("Banners", style = MaterialTheme.typography.titleMedium) }
+            item { Text(stringResource(R.string.gallery_banners), style = MaterialTheme.typography.titleMedium) }
             item { StaleBanner(onRetry = {}) }
             item { PrototypeBanner() }
 
-            item { Text("Energy charts (simulated)", style = MaterialTheme.typography.titleMedium) }
+            item { Text(stringResource(R.string.gallery_energy_charts), style = MaterialTheme.typography.titleMedium) }
             item { EnergyLineChart(usage) }
             item { EnergyBarChart(months) }
 
-            item { Text("State views", style = MaterialTheme.typography.titleMedium) }
-            item { LoadingView(Modifier.height(140.dp), message = "Loading products...") }
-            item { ErrorView("Can't reach the MMM server. Make sure it is running and try again.", Modifier.height(240.dp), onRetry = {}) }
-            item { EmptyView("No products found", "Try a different search or filter.", Modifier.height(200.dp)) }
+            item { Text(stringResource(R.string.gallery_state_views), style = MaterialTheme.typography.titleMedium) }
+            item { LoadingView(Modifier.height(140.dp), message = stringResource(R.string.loading_products)) }
+            item { ErrorView(stringResource(R.string.error_server_unreachable), Modifier.height(240.dp), onRetry = {}) }
+            item { EmptyView(stringResource(R.string.empty_search_products), stringResource(R.string.empty_search_subtitle), Modifier.height(200.dp)) }
 
-            item { Text("Listing editor", style = MaterialTheme.typography.titleMedium) }
-            item { MmmButton("Open editor", { showEditor = true }) }
+            item { Text(stringResource(R.string.gallery_listing_editor), style = MaterialTheme.typography.titleMedium) }
+            item { MmmButton(stringResource(R.string.btn_open_editor), { showEditor = true }) }
         }
     }
 
