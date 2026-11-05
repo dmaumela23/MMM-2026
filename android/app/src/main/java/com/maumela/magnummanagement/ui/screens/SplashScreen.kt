@@ -18,9 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.ui.components.MmmButton
 import com.maumela.magnummanagement.ui.theme.Gold
 import com.maumela.magnummanagement.ui.theme.Grey200Dark
@@ -55,9 +57,9 @@ fun SplashScreen(viewModel: SplashViewModel, onGoHome: () -> Unit, onGoLogin: ()
             verticalArrangement = Arrangement.Center,
         ) {
             Text("MMM", style = MaterialTheme.typography.displayMedium, color = Gold)
-            Text("MAUMELA MAGNUM MANAGEMENT", style = MaterialTheme.typography.labelLarge, color = Color.White)
+            Text(stringResource(R.string.brand_company_name), style = MaterialTheme.typography.labelLarge, color = Color.White)
             Spacer(Modifier.height(6.dp))
-            Text("Products · Services · Energy", style = MaterialTheme.typography.bodyMedium, color = Grey200Dark)
+            Text(stringResource(R.string.splash_tagline), style = MaterialTheme.typography.bodyMedium, color = Grey200Dark)
             Spacer(Modifier.height(32.dp))
 
             val current = state
@@ -66,7 +68,7 @@ fun SplashScreen(viewModel: SplashViewModel, onGoHome: () -> Unit, onGoLogin: ()
                 is SplashState.Error -> {
                     Text(current.message, color = Color.White, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(16.dp))
-                    MmmButton("Try again", onClick = viewModel::check)
+                    MmmButton(stringResource(R.string.btn_try_again), onClick = viewModel::check)
                 }
                 else -> Unit
             }

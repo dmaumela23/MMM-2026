@@ -27,12 +27,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.data.model.EnergyPlanDto
 import com.maumela.magnummanagement.data.model.EnergyPlansResponse
 import com.maumela.magnummanagement.data.model.EnergyUsageResponse
+import com.maumela.magnummanagement.data.repository.EnergyRepository
 import com.maumela.magnummanagement.ui.components.EmptyView
 import com.maumela.magnummanagement.ui.components.EnergyBarChart
 import com.maumela.magnummanagement.ui.components.EnergyLineChart
@@ -50,9 +53,6 @@ import com.maumela.magnummanagement.utils.EnergyCalculator
 import com.maumela.magnummanagement.utils.Formatters
 import com.maumela.magnummanagement.utils.UiState
 import com.maumela.magnummanagement.viewmodel.EnergyViewModel
-import com.maumela.magnummanagement.data.repository.EnergyRepository
-
-// ALL energy data is SIMULATED by the backend. Every screen below shows the PrototypeBanner.
 
 @Composable
 fun EnergyDashboardScreen(
@@ -65,7 +65,7 @@ fun EnergyDashboardScreen(
     val usageState = state.usage
     val plansState = state.plans
 
-    MmmScaffold(topBar = { MmmTopBar(title = "Energy Solutions") }) { padding ->
+    MmmScaffold(topBar = { MmmTopBar(title = stringResource(R.string.energy_solutions_title)) }) { padding ->
         PullToRefreshBox(
             isRefreshing = false,
             onRefresh = viewModel::refresh,
@@ -95,7 +95,7 @@ fun EnergyDashboardScreen(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("Usage, last ${usage.days} days (simulated)", style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(R.string.energy_usage_history_days, usage.days), style = MaterialTheme.typography.titleMedium)
                                 EnergyLineChart(usage.history)
                             }
                         }
@@ -104,26 +104,26 @@ fun EnergyDashboardScreen(
 
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                        MmmButton("Usage history", onUsage, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
-                        MmmButton("Reports", onReports, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
+                        MmmButton(stringResource(R.string.btn_usage_history), onUsage, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
+                        MmmButton(stringResource(R.string.btn_reports), onReports, style = MmmButtonStyle.Secondary, modifier = Modifier.weight(1f))
                     }
                 }
 
-                item { SectionHeader("Energy plans", horizontalPadding = 0.dp) }
+                item { SectionHeader(stringResource(R.string.section_energy_plans), horizontalPadding = 0.dp) }
                 when (plansState) {
                     UiState.Loading -> item { LoadingView(Modifier.height(120.dp)) }
                     is UiState.Failure -> item { ErrorView(plansState.error.message, Modifier.height(240.dp), onRetry = viewModel::refresh) }
                     is UiState.Success -> {
                         val response: EnergyPlansResponse = plansState.data
                         if (response.plans.isEmpty()) {
-                            item { EmptyView("No plans", "There are no energy plans yet.", Modifier.height(160.dp)) }
+                            item { EmptyView(stringResource(R.string.empty_no_plans_title), stringResource(R.string.empty_no_plans_subtitle), Modifier.height(160.dp)) }
                         } else {
                             items(response.plans, key = { it.id }) { plan ->
                                 PlanCard(plan, isCurrent = plan.id == response.currentPlanId)
                             }
                             item {
                                 Text(
-                                    "Plans are read-only in this prototype. Your plan was assigned when your account was created.",
+                                    stringResource(R.string.msg_plans_readonly),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -151,15 +151,15 @@ private fun UsageSummary(usage: EnergyUsageResponse) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Your energy (simulated)", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.your_energy_simulated), style = MaterialTheme.typography.titleMedium)
                 EnergyStatusChip(usage.status)
             }
-            StatRow("Current usage (latest day)", Formatters.kwh(usage.currentKwh))
-            StatRow("Estimated monthly usage", Formatters.kwh(usage.estimatedMonthlyKwh))
-            StatRow("Estimated monthly cost", Formatters.money(usage.estimatedCost))
-            StatRow("Plan", usage.plan.name)
+            StatRow(stringResource(R.string.stat_current_usage_latest), Formatters.kwh(usage.currentKwh))
+            StatRow(stringResource(R.string.stat_estimated_monthly_usage), Formatters.kwh(usage.estimatedMonthlyKwh))
+            StatRow(stringResource(R.string.stat_estimated_monthly_cost), Formatters.money(usage.estimatedCost))
+            StatRow(stringResource(R.string.stat_plan), usage.plan.name)
             Text(
-                "$percent% of your plan limit (${usage.plan.maxKwh} kWh)",
+                stringResource(R.string.plan_limit_format, percent, usage.plan.maxKwh),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -198,14 +198,14 @@ private fun PlanCard(plan: EnergyPlanDto, isCurrent: Boolean) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(plan.name, style = MaterialTheme.typography.titleMedium)
-                if (isCurrent) Text("Your plan", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
+                if (isCurrent) Text(stringResource(R.string.label_your_plan), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
             }
             if (plan.description.isNotBlank()) {
                 Text(plan.description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            StatRow("Price per kWh", Formatters.money(plan.pricePerKwh))
-            StatRow("Monthly fee", Formatters.money(plan.monthlyFee))
-            StatRow("Included limit", "${plan.maxKwh} kWh")
+            StatRow(stringResource(R.string.stat_price_per_kwh), Formatters.money(plan.pricePerKwh))
+            StatRow(stringResource(R.string.stat_monthly_fee), Formatters.money(plan.monthlyFee))
+            StatRow(stringResource(R.string.stat_included_limit), "${plan.maxKwh} kWh")
         }
     }
 }
@@ -215,7 +215,7 @@ fun EnergyUsageScreen(viewModel: EnergyViewModel, onBack: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val usageState = state.usage
 
-    MmmScaffold(topBar = { MmmTopBar(title = "Energy usage", onBack = onBack) }) { padding ->
+    MmmScaffold(topBar = { MmmTopBar(title = stringResource(R.string.energy_usage_title), onBack = onBack) }) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(16.dp),
@@ -224,12 +224,12 @@ fun EnergyUsageScreen(viewModel: EnergyViewModel, onBack: () -> Unit) {
             item { PrototypeBanner() }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Range", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.label_range), style = MaterialTheme.typography.labelLarge)
                     EnergyRepository.ALLOWED_DAYS.forEach { days ->
                         FilterChip(
                             selected = state.selectedDays == days,
                             onClick = { viewModel.setDays(days) },
-                            label = { Text("$days days") },
+                            label = { Text(stringResource(R.string.days_format, days)) },
                         )
                     }
                 }
@@ -240,7 +240,7 @@ fun EnergyUsageScreen(viewModel: EnergyViewModel, onBack: () -> Unit) {
                 is UiState.Success -> {
                     val usage = usageState.data
                     item { EnergyLineChart(usage.history) }
-                    item { SectionHeader("Daily readings (simulated)", horizontalPadding = 0.dp) }
+                    item { SectionHeader(stringResource(R.string.section_daily_readings), horizontalPadding = 0.dp) }
                     items(usage.history.reversed(), key = { it.date }) { point ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -263,7 +263,7 @@ fun EnergyReportsScreen(viewModel: EnergyViewModel, onBack: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val reportsState = state.reports
 
-    MmmScaffold(topBar = { MmmTopBar(title = "Energy reports", onBack = onBack) }) { padding ->
+    MmmScaffold(topBar = { MmmTopBar(title = stringResource(R.string.energy_reports_title), onBack = onBack) }) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(16.dp),
@@ -276,7 +276,7 @@ fun EnergyReportsScreen(viewModel: EnergyViewModel, onBack: () -> Unit) {
                 is UiState.Success -> {
                     val months = reportsState.data.months
                     if (months.isEmpty()) {
-                        item { EmptyView("No report data", "Reports appear once usage has been recorded.", Modifier.height(200.dp)) }
+                        item { EmptyView(stringResource(R.string.empty_no_reports_title), stringResource(R.string.empty_no_reports_subtitle), Modifier.height(200.dp)) }
                     } else {
                         item { EnergyBarChart(months) }
                         items(months.reversed(), key = { it.month }) { month ->
@@ -287,11 +287,11 @@ fun EnergyReportsScreen(viewModel: EnergyViewModel, onBack: () -> Unit) {
                             ) {
                                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Text(Formatters.month(month.month), style = MaterialTheme.typography.titleMedium)
-                                    StatRow("Total usage", Formatters.kwh(month.totalKwh))
-                                    StatRow("Daily average", Formatters.kwh(month.averageDailyKwh))
-                                    StatRow("Estimated cost", Formatters.money(month.estimatedCost))
+                                    StatRow(stringResource(R.string.stat_total_usage), Formatters.kwh(month.totalKwh))
+                                    StatRow(stringResource(R.string.stat_daily_average), Formatters.kwh(month.averageDailyKwh))
+                                    StatRow(stringResource(R.string.stat_estimated_cost), Formatters.money(month.estimatedCost))
                                     Text(
-                                        "${month.daysRecorded} days recorded (simulated)",
+                                        stringResource(R.string.days_recorded_simulated, month.daysRecorded),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )

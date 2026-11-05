@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -33,6 +34,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.maumela.magnummanagement.R
 import com.maumela.magnummanagement.ui.components.BrandHeader
 import com.maumela.magnummanagement.ui.components.MessageCard
 import com.maumela.magnummanagement.ui.components.MmmButton
@@ -114,9 +116,13 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Spacer(Modifier.height(24.dp))
-            BrandHeader(subtitle = "Products · Services · Energy")
+            BrandHeader(subtitle = stringResource(R.string.subtitle_tagline))
             Spacer(Modifier.height(16.dp))
-            Text("Log in", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.align(Alignment.Start))
+            Text(
+                text = stringResource(R.string.login_title),
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.align(Alignment.Start)
+            )
 
             if (notice != null) MessageCard(notice, isError = false, modifier = Modifier.fillMaxWidth())
             if (serverError != null) MessageCard(serverError, isError = true, modifier = Modifier.fillMaxWidth())
@@ -124,7 +130,7 @@ fun LoginScreen(
             MmmTextField(
                 value = email,
                 onValueChange = { email = it; viewModel.clearErrors() },
-                label = "Email",
+                label = stringResource(R.string.label_email),
                 error = errors.email,
                 keyboardType = KeyboardType.Email,
                 modifier = Modifier.fillMaxWidth(),
@@ -132,7 +138,7 @@ fun LoginScreen(
             MmmTextField(
                 value = password,
                 onValueChange = { password = it; viewModel.clearErrors() },
-                label = "Password",
+                label = stringResource(R.string.label_password),
                 error = errors.password,
                 isPassword = true,
                 imeAction = ImeAction.Done,
@@ -140,7 +146,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
             MmmButton(
-                text = "Log in",
+                text = stringResource(R.string.btn_login),
                 onClick = { viewModel.login(email, password) },
                 loading = state.isLoading,
                 modifier = Modifier.fillMaxWidth(),
@@ -148,14 +154,14 @@ fun LoginScreen(
 
             // Google SSO Button
             MmmButton(
-                text = "Sign in with Google",
+                text = stringResource(R.string.btn_google_sign_in),
                 onClick = { launchGoogleSignIn() },
                 loading = state.isLoading,
                 modifier = Modifier.fillMaxWidth(),
             )
 
             TextButton(onClick = onRegister, enabled = !state.isLoading) {
-                Text("New to MMM? Create an account")
+                Text(stringResource(R.string.btn_create_account))
             }
         }
     }
