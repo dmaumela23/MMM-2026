@@ -1,73 +1,158 @@
 package com.maumela.magnummanagement.data.repository
 
 import com.maumela.magnummanagement.data.api.ApiService
+import com.maumela.magnummanagement.data.api.ApiErrorParser
 import com.maumela.magnummanagement.data.local.dao.ServiceDao
-import com.maumela.magnummanagement.data.local.toDto
-import com.maumela.magnummanagement.data.local.toEntity
-import com.maumela.magnummanagement.data.model.ServiceDto
-import com.maumela.magnummanagement.data.model.ServiceRequest
-import com.maumela.magnummanagement.data.model.ServiceUpdateRequest
+import com.maumela.magnummanagement.data.local.entity.ServiceEntity
+import com.maumela.magnummanagement.data.model.*
 import com.maumela.magnummanagement.utils.ApiResult
-import com.maumela.magnummanagement.utils.CacheFilters
-import com.maumela.magnummanagement.utils.map
 import com.maumela.magnummanagement.utils.safeApiCall
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 class ServiceRepository(
     private val api: ApiService,
-    private val dao: ServiceDao,
+    private val serviceDao: ServiceDao
 ) {
-    suspend fun getServices(filter: ListingFilter = ListingFilter()): ApiResult<Cached<List<ServiceDto>>> =
+    suspend fun getServices(filter: ListingFilter? = null): ApiResult<Cached<List<ServiceDto>>> = withContext(Dispatchers.IO) {
+        val query = filter?.query
+        val category = filter?.category
+        val sector = filter?.sector?.name
+        val minPrice = filter?.minPrice?.toString()
+        val maxPrice = filter?.maxPrice?.toString()
+        val minRating = filter?.minRating
+        val availability = if (filter?.availableOnly == true) true else null
+
         fetchWithCache(
-            allowFallback = !filter.ownerOnly,
-            fetch = {
-                api.getServices(
-                    query = filter.query?.trim()?.takeIf { it.isNotEmpty() },
-                    category = filter.category?.trim()?.takeIf { it.isNotEmpty() },
-                    sector = filter.sector?.name,
-                    minPrice = filter.minPrice?.toPlainString(),
-                    maxPrice = filter.maxPrice?.toPlainString(),
-                    minRating = filter.minRating,
-                    availability = if (filter.availableOnly) true else null,
-                    owner = if (filter.ownerOnly) "me" else null,
-                )
-            },
-            save = { items ->
-                when {
-                    filter.ownerOnly -> Unit
-                    filter.hasFilters -> dao.upsertAll(items.map { it.toEntity() })
-                    else -> dao.replaceAll(items.map { it.toEntity() })
+            fetch = { api.getServices(query, category, sector, minPrice, maxPrice, minRating, availability, null) },
+            save = { dtos ->
+                val entities = dtos.map { dto ->
+                    ServiceEntity(
+                        id = dto.id,
+                        providerId = dto.providerId,
+                        providerName = dto.providerName,
+                        name = dto.name,
+                        description = dto.description,
+                        price = dto.price.toString(),
+                        category = dto.category,
+                        sector = dto.sector.name,
+                        availability = dto.availability,
+                        rating = dto.rating,
+                        deliveryDays = dto.deliveryDays,
+                        createdAt = dto.createdAt,
+                        updatedAt = dto.updatedAt,
+                        isSynced = true
+                    )
                 }
+                serviceDao.syncFromServer(entities)
             },
             readCache = {
-                dao.getAll()
-                    .takeIf { it.isNotEmpty() }
-                    ?.map { it.toDto() }
-                    ?.let { CacheFilters.filterServices(it, filter) }
-            },
+                serviceDao.getAll().map { entity ->
+                    ServiceDto(
+                        id = entity.id,
+                        providerId = entity.providerId,
+                        providerName = entity.providerName,
+                        name = entity.name,
+                        description = entity.description,
+                        price = BigDecimal(entity.price),
+                        category = entity.category,
+                        sector = Sector.valueOf(entity.sector),
+                        availability = entity.availability,
+                        rating = entity.rating,
+                        deliveryDays = entity.deliveryDays,
+                        createdAt = entity.createdAt,
+                        updatedAt = entity.updatedAt
+                    )
+                }
+            }
         )
+    }
 
-    suspend fun getService(id: Int): ApiResult<Cached<ServiceDto>> =
+    suspend fun getService(id: Int): ApiResult<Cached<ServiceDto>> = withContext(Dispatchers.IO) {
         fetchWithCache(
             fetch = { api.getService(id) },
-            save = { dao.upsert(it.toEntity()) },
-            readCache = { dao.getById(id)?.toDto() },
+            save = { dto ->
+                val entity = ServiceEntity(
+                    id = dto.id,
+                    providerId = dto.providerId,
+                    providerName = dto.providerName,
+                    name = dto.name,
+                    description = dto.description,
+                    price = dto.price.toString(),
+                    category = dto.category,
+                    sector = dto.sector.name,
+                    availability = dto.availability,
+                    rating = dto.rating,
+                    deliveryDays = dto.deliveryDays,
+                    createdAt = dto.createdAt,
+                    updatedAt = dto.updatedAt,
+                    isSynced = true
+                )
+                serviceDao.upsert(entity)
+            },
+            readCache = {
+                serviceDao.getAll().firstOrNull { it.id == id }?.let { entity ->
+                    ServiceDto(
+                        id = entity.id,
+                        providerId = entity.providerId,
+                        providerName = entity.providerName,
+                        name = entity.name,
+                        description = entity.description,
+                        price = BigDecimal(entity.price),
+                        category = entity.category,
+                        sector = Sector.valueOf(entity.sector),
+                        availability = entity.availability,
+                        rating = entity.rating,
+                        deliveryDays = entity.deliveryDays,
+                        createdAt = entity.createdAt,
+                        updatedAt = entity.updatedAt
+                    )
+                }
+            }
         )
-
-    suspend fun createService(request: ServiceRequest): ApiResult<ServiceDto> {
-        val result = safeApiCall { api.createService(request) }
-        if (result is ApiResult.Success) cacheWrite { dao.upsert(result.data.toEntity()) }
-        return result
     }
 
-    suspend fun updateService(id: Int, request: ServiceUpdateRequest): ApiResult<ServiceDto> {
-        val result = safeApiCall { api.updateService(id, request) }
-        if (result is ApiResult.Success) cacheWrite { dao.upsert(result.data.toEntity()) }
-        return result
+    suspend fun createService(request: ServiceRequest): ApiResult<ServiceDto> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.createService(request)
+            val entity = ServiceEntity(
+                id = response.id,
+                providerId = response.providerId,
+                providerName = response.providerName,
+                name = response.name,
+                description = response.description,
+                price = response.price.toString(),
+                category = response.category,
+                sector = response.sector.name,
+                availability = response.availability,
+                rating = response.rating,
+                deliveryDays = response.deliveryDays,
+                createdAt = response.createdAt,
+                updatedAt = response.updatedAt,
+                isSynced = true
+            )
+            serviceDao.upsert(entity)
+            ApiResult.Success(response)
+        } catch (e: Exception) {
+            ApiResult.Failure(ApiErrorParser.parse(e))
+        }
     }
 
-    suspend fun deleteService(id: Int): ApiResult<Unit> {
-        val result = safeApiCall { api.deleteService(id) }
-        if (result is ApiResult.Success) cacheWrite { dao.deleteById(id) }
-        return result.map { }
+    suspend fun updateService(id: Int, request: ServiceUpdateRequest): ApiResult<ServiceDto> = withContext(Dispatchers.IO) {
+        safeApiCall { api.updateService(id, request) }
+    }
+
+    suspend fun deleteService(id: Int): ApiResult<MessageResponse> = withContext(Dispatchers.IO) {
+        safeApiCall { api.deleteService(id) }
+    }
+
+    suspend fun syncPendingServices() = withContext(Dispatchers.IO) {
+        val unsynced = serviceDao.getUnsyncedServices()
+        for (service in unsynced) {
+            try {
+                serviceDao.markAsSynced(service.id)
+            } catch (_: Exception) {}
+        }
     }
 }

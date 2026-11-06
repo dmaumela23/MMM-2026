@@ -26,10 +26,22 @@ abstract class ProductDao {
     @Query("DELETE FROM products")
     abstract suspend fun clear()
 
-    /** Replaces the whole cache atomically (used after an unfiltered fetch). */
+    /** Fetch only products created or edited locally that haven't synced to the server yet. */
+    @Query("SELECT * FROM products WHERE isSynced = 0")
+    abstract suspend fun getUnsyncedProducts(): List<ProductEntity>
+
+    /** Mark a specific product as successfully synced with the backend server. */
+    @Query("UPDATE products SET isSynced = 1 WHERE id = :productId")
+    abstract suspend fun markAsSynced(productId: Int)
+
+    /** Replaces the cache with server items while preserving local unsynced mutations. */
     @Transaction
-    open suspend fun replaceAll(items: List<ProductEntity>) {
+    open suspend fun syncFromServer(serverItems: List<ProductEntity>) {
+        val unsynced = getUnsyncedProducts()
         clear()
-        upsertAll(items)
+        upsertAll(serverItems)
+        if (unsynced.isNotEmpty()) {
+            upsertAll(unsynced) // Re-apply local pending products on top so they aren't lost
+        }
     }
 }

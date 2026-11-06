@@ -121,4 +121,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // WorkManager
+    val workVersion = "2.10.0" // or your current stable version
+    implementation("androidx.work:work-runtime-ktx:$workVersion")
 }

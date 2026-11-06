@@ -19,4 +19,5 @@ data class ProductEntity(
     val rating: Double,
     val createdAt: String,
     val updatedAt: String,
+    val isSynced: Boolean = true // Added for offline-first sync tracking
 )

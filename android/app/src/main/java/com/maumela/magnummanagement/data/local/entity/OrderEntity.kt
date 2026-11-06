@@ -12,4 +12,5 @@ data class OrderEntity(
     val createdAt: String,
     val itemCount: Int,
     val firstItemName: String?,
+    val isSynced: Boolean = true
 )
