@@ -20,18 +20,9 @@ import com.maumela.magnummanagement.data.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-// DataStore instances must be declared once, at file level.
 private val Context.secureDataStore: DataStore<Preferences> by preferencesDataStore(name = "mmm_secure")
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "mmm_settings")
 
-/**
- * Manual dependency injection: builds every long-lived object once and wires them together.
- * (Hilt would be overkill for a prototype.)
- *
- *   ViewModel -> Repository -> ApiService (Retrofit) -> FastAPI -> PostgreSQL
- *                   |
- *                   +-> Room (read-only cache) / TokenStore / PreferencesStore
- */
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
 
@@ -48,7 +39,6 @@ class AppContainer(context: Context) {
     ).api
 
     val authRepository = AuthRepository(api, tokenStore, preferencesStore) {
-        // Room must not run on the main thread.
         withContext(Dispatchers.IO) { database.clearAllTables() }
     }
     val productRepository by lazy { ProductRepository(api, database.productDao()) }
