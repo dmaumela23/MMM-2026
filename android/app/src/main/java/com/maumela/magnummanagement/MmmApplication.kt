@@ -12,18 +12,33 @@ import com.maumela.magnummanagement.data.repository.ServiceRepository
 import com.maumela.magnummanagement.notifications.NotificationChannels
 import java.util.concurrent.TimeUnit
 
+/** Container to satisfy legacy references in MainActivity and MmmMessagingService */
+class AppContainer(context: Context) {
+    val database = AppDatabase.getInstance(context)
+    val preferences = PreferencesStore(context)
+    val apiService = ApiClient.create(preferences)
+
+    val productRepository = ProductRepository(apiService, database.productDao())
+    val serviceRepository = ServiceRepository(apiService, database.serviceDao())
+    val orderRepository = OrderRepository(apiService, database.orderDao())
+}
+
 class MmmApplication : Application() {
 
-    val database by lazy { AppDatabase.getInstance(this) }
-    val preferences by lazy { PreferencesStore(this) }
-    val apiService by lazy { ApiClient.create(preferences) }
+    lateinit var container: AppContainer
+        private set
 
-    val productRepository by lazy { ProductRepository(apiService, database.productDao()) }
-    val serviceRepository by lazy { ServiceRepository(apiService, database.serviceDao()) }
-    val orderRepository by lazy { OrderRepository(apiService, database.orderDao()) }
+    val database by lazy { container.database }
+    val preferences by lazy { container.preferences }
+    val apiService by lazy { container.apiService }
+
+    val productRepository by lazy { container.productRepository }
+    val serviceRepository by lazy { container.serviceRepository }
+    val orderRepository by lazy { container.orderRepository }
 
     override fun onCreate() {
         super.onCreate()
+        container = AppContainer(this)
         NotificationChannels.create(this)
         setupPeriodicSync()
     }
