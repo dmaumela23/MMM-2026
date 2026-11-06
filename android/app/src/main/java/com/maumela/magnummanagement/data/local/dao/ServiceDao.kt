@@ -26,9 +26,22 @@ abstract class ServiceDao {
     @Query("DELETE FROM services")
     abstract suspend fun clear()
 
+    /** Fetch only services created or edited locally that haven't synced to the server yet. */
+    @Query("SELECT * FROM services WHERE isSynced = 0")
+    abstract suspend fun getUnsyncedServices(): List<ServiceEntity>
+
+    /** Mark a specific service as successfully synced with the backend server. */
+    @Query("UPDATE services SET isSynced = 1 WHERE id = :serviceId")
+    abstract suspend fun markAsSynced(serviceId: Int)
+
+    /** Replaces the cache with server items while preserving local unsynced mutations. */
     @Transaction
-    open suspend fun replaceAll(items: List<ServiceEntity>) {
+    open suspend fun syncFromServer(serverItems: List<ServiceEntity>) {
+        val unsynced = getUnsyncedServices()
         clear()
-        upsertAll(items)
+        upsertAll(serverItems)
+        if (unsynced.isNotEmpty()) {
+            upsertAll(unsynced) // Re-apply local pending services on top so they aren't lost
+        }
     }
 }

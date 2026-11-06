@@ -1,74 +1,163 @@
 package com.maumela.magnummanagement.data.repository
 
 import com.maumela.magnummanagement.data.api.ApiService
+import com.maumela.magnummanagement.data.api.ApiErrorParser
 import com.maumela.magnummanagement.data.local.dao.ProductDao
-import com.maumela.magnummanagement.data.local.toDto
-import com.maumela.magnummanagement.data.local.toEntity
-import com.maumela.magnummanagement.data.model.ProductDto
-import com.maumela.magnummanagement.data.model.ProductRequest
-import com.maumela.magnummanagement.data.model.ProductUpdateRequest
+import com.maumela.magnummanagement.data.local.entity.ProductEntity
+import com.maumela.magnummanagement.data.model.*
 import com.maumela.magnummanagement.utils.ApiResult
-import com.maumela.magnummanagement.utils.CacheFilters
-import com.maumela.magnummanagement.utils.map
 import com.maumela.magnummanagement.utils.safeApiCall
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 class ProductRepository(
     private val api: ApiService,
-    private val dao: ProductDao,
+    private val productDao: ProductDao
 ) {
-    /** Server first (it applies the filters in SQL); the local cache only when the network fails. */
-    suspend fun getProducts(filter: ListingFilter = ListingFilter()): ApiResult<Cached<List<ProductDto>>> =
+    suspend fun getProducts(filter: ListingFilter? = null): ApiResult<Cached<List<ProductDto>>> = withContext(Dispatchers.IO) {
+        val query = filter?.query
+        val category = filter?.category
+        val sector = filter?.sector?.name
+        val minPrice = filter?.minPrice?.toString()
+        val maxPrice = filter?.maxPrice?.toString()
+        val minRating = filter?.minRating
+        val availability = if (filter?.availableOnly == true) true else null
+
         fetchWithCache(
-            allowFallback = !filter.ownerOnly, // "my products" needs the server
-            fetch = {
-                api.getProducts(
-                    query = filter.query?.trim()?.takeIf { it.isNotEmpty() },
-                    category = filter.category?.trim()?.takeIf { it.isNotEmpty() },
-                    sector = filter.sector?.name,
-                    minPrice = filter.minPrice?.toPlainString(),
-                    maxPrice = filter.maxPrice?.toPlainString(),
-                    minRating = filter.minRating,
-                    availability = if (filter.availableOnly) true else null,
-                    owner = if (filter.ownerOnly) "me" else null,
-                )
-            },
-            save = { items ->
-                when {
-                    filter.ownerOnly -> Unit // a partial list must not overwrite the shared cache
-                    filter.hasFilters -> dao.upsertAll(items.map { it.toEntity() })
-                    else -> dao.replaceAll(items.map { it.toEntity() }) // full list: replace atomically
+            fetch = { api.getProducts(query, category, sector, minPrice, maxPrice, minRating, availability, null) },
+            save = { dtos ->
+                val entities = dtos.map { dto ->
+                    ProductEntity(
+                        id = dto.id,
+                        sellerId = dto.sellerId,
+                        sellerName = dto.sellerName,
+                        name = dto.name,
+                        description = dto.description,
+                        price = dto.price.toString(),
+                        category = dto.category,
+                        sector = dto.sector.name,
+                        imageUrl = dto.imageUrl,
+                        stockQuantity = dto.stockQuantity,
+                        availability = dto.availability,
+                        rating = dto.rating,
+                        createdAt = dto.createdAt,
+                        updatedAt = dto.updatedAt,
+                        isSynced = true
+                    )
                 }
+                productDao.syncFromServer(entities)
             },
             readCache = {
-                dao.getAll()
-                    .takeIf { it.isNotEmpty() } // empty cache = nothing to show, report the real error
-                    ?.map { it.toDto() }
-                    ?.let { CacheFilters.filterProducts(it, filter) }
-            },
+                productDao.getAll().map { entity ->
+                    ProductDto(
+                        id = entity.id,
+                        sellerId = entity.sellerId,
+                        sellerName = entity.sellerName,
+                        name = entity.name,
+                        description = entity.description,
+                        price = BigDecimal(entity.price),
+                        category = entity.category,
+                        sector = Sector.valueOf(entity.sector),
+                        imageUrl = entity.imageUrl,
+                        stockQuantity = entity.stockQuantity,
+                        availability = entity.availability,
+                        rating = entity.rating,
+                        createdAt = entity.createdAt,
+                        updatedAt = entity.updatedAt
+                    )
+                }
+            }
         )
+    }
 
-    suspend fun getProduct(id: Int): ApiResult<Cached<ProductDto>> =
+    suspend fun getProduct(id: Int): ApiResult<Cached<ProductDto>> = withContext(Dispatchers.IO) {
         fetchWithCache(
             fetch = { api.getProduct(id) },
-            save = { dao.upsert(it.toEntity()) },
-            readCache = { dao.getById(id)?.toDto() },
+            save = { dto ->
+                val entity = ProductEntity(
+                    id = dto.id,
+                    sellerId = dto.sellerId,
+                    sellerName = dto.sellerName,
+                    name = dto.name,
+                    description = dto.description,
+                    price = dto.price.toString(),
+                    category = dto.category,
+                    sector = dto.sector.name,
+                    imageUrl = dto.imageUrl,
+                    stockQuantity = dto.stockQuantity,
+                    availability = dto.availability,
+                    rating = dto.rating,
+                    createdAt = dto.createdAt,
+                    updatedAt = dto.updatedAt,
+                    isSynced = true
+                )
+                productDao.upsert(entity)
+            },
+            readCache = {
+                productDao.getAll().firstOrNull { it.id == id }?.let { entity ->
+                    ProductDto(
+                        id = entity.id,
+                        sellerId = entity.sellerId,
+                        sellerName = entity.sellerName,
+                        name = entity.name,
+                        description = entity.description,
+                        price = BigDecimal(entity.price),
+                        category = entity.category,
+                        sector = Sector.valueOf(entity.sector),
+                        imageUrl = entity.imageUrl,
+                        stockQuantity = entity.stockQuantity,
+                        availability = entity.availability,
+                        rating = entity.rating,
+                        createdAt = entity.createdAt,
+                        updatedAt = entity.updatedAt
+                    )
+                }
+            }
         )
-
-    suspend fun createProduct(request: ProductRequest): ApiResult<ProductDto> {
-        val result = safeApiCall { api.createProduct(request) }
-        if (result is ApiResult.Success) cacheWrite { dao.upsert(result.data.toEntity()) }
-        return result
     }
 
-    suspend fun updateProduct(id: Int, request: ProductUpdateRequest): ApiResult<ProductDto> {
-        val result = safeApiCall { api.updateProduct(id, request) }
-        if (result is ApiResult.Success) cacheWrite { dao.upsert(result.data.toEntity()) }
-        return result
+    suspend fun createProduct(request: ProductRequest): ApiResult<ProductDto> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.createProduct(request)
+            val entity = ProductEntity(
+                id = response.id,
+                sellerId = response.sellerId,
+                sellerName = response.sellerName,
+                name = response.name,
+                description = response.description,
+                price = response.price.toString(),
+                category = response.category,
+                sector = response.sector.name,
+                imageUrl = response.imageUrl,
+                stockQuantity = response.stockQuantity,
+                availability = response.availability,
+                rating = response.rating,
+                createdAt = response.createdAt,
+                updatedAt = response.updatedAt,
+                isSynced = true
+            )
+            productDao.upsert(entity)
+            ApiResult.Success(response)
+        } catch (e: Exception) {
+            ApiResult.Failure(ApiErrorParser.parse(e))
+        }
     }
 
-    suspend fun deleteProduct(id: Int): ApiResult<Unit> {
-        val result = safeApiCall { api.deleteProduct(id) }
-        if (result is ApiResult.Success) cacheWrite { dao.deleteById(id) }
-        return result.map { }
+    suspend fun updateProduct(id: Int, request: ProductUpdateRequest): ApiResult<ProductDto> = withContext(Dispatchers.IO) {
+        safeApiCall { api.updateProduct(id, request) }
+    }
+
+    suspend fun deleteProduct(id: Int): ApiResult<MessageResponse> = withContext(Dispatchers.IO) {
+        safeApiCall { api.deleteProduct(id) }
+    }
+
+    suspend fun syncPendingProducts() = withContext(Dispatchers.IO) {
+        val unsynced = productDao.getUnsyncedProducts()
+        for (product in unsynced) {
+            try {
+                productDao.markAsSynced(product.id)
+            } catch (_: Exception) {}
+        }
     }
 }
