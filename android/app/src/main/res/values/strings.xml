@@ -92,7 +92,7 @@
     <string name="marketplace_title">Marketplace</string>
     <string name="cart_content_description">Your order, %1$d items</string>
     <string name="filters_title">Filters</string>
-    <string name="filters_with_count">Filters (%1$d)</string>
+    <string name="filters_with_count">Filters %1$d</string>
     <string name="btn_search">Search</string>
     <string name="btn_clear_all">Clear all</string>
     <string name="tab_products">Products</string>

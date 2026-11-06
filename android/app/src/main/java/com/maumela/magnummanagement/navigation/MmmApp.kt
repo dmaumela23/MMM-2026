@@ -211,7 +211,7 @@ fun MmmApp(container: AppContainer) {
                         viewModel = appViewModel<ServiceDetailViewModel>(container, serviceId = id),
                         user = user,
                         onBack = { navController.popBackStack() },
-                        onAddToOrder = { draftViewModel.addService(it) },
+                        onRequestService = { service -> draftViewModel.addService(service) },
                         onGoToOrders = { navController.navigateTopLevel(Routes.ORDERS) },
                     )
                 }

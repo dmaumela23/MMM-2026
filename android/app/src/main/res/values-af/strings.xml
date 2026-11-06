@@ -17,7 +17,7 @@
     <string name="section_change_password">Verander wagwoord</string>
     <string name="label_current_password">Huidige wagwoord</string>
     <string name="label_new_password">Nuwe wagwoord</string>
-    <string name="helper_password_req">Ten minste 8 karakters met &#x27;n letter en &#x27;n syfer</string>
+    <string name="helper_password_req">Ten minste 8 karakters met \'n letter en \'n syfer</string>
     <string name="label_confirm_new_password">Bevestig nuwe wagwoord</string>
     <string name="btn_update_password">Opdateer wagwoord</string>
     <string name="section_notifications">Kennisgewings</string>
@@ -32,9 +32,9 @@
     <string name="msg_password_updated">Wagwoord opgedateer</string>
     <string name="msg_notifications_blocked">Kennisgewings word geblokkeer. Laat dit toe in Android-instellings om opdaterings te ontvang.</string>
     <!-- Register Screen -->
-    <string name="register_title">Skep &#x27;n rekening</string>
+    <string name="register_title">Skep \'n rekening</string>
     <string name="btn_register">Registreer</string>
-    <string name="btn_already_have_account">Het reeds &#x27;n rekening? Teken in</string>
+    <string name="btn_already_have_account">Het reeds \'n rekening? Teken in</string>
     <string name="account_type">Rekeningtipe</string>
     <!-- Home Screen -->
     <string name="search_products_and_services">Soek produkte en dienste</string>
