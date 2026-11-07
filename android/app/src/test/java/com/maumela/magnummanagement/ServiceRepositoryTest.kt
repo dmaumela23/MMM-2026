@@ -3,6 +3,7 @@ package com.maumela.magnummanagement
 import com.maumela.magnummanagement.data.api.ApiService
 import com.maumela.magnummanagement.data.api.ErrorKind
 import com.maumela.magnummanagement.data.local.dao.ServiceDao
+import com.maumela.magnummanagement.data.local.entity.ServiceEntity
 import com.maumela.magnummanagement.data.local.toEntity
 import com.maumela.magnummanagement.data.repository.ListingFilter
 import com.maumela.magnummanagement.data.repository.ServiceRepository

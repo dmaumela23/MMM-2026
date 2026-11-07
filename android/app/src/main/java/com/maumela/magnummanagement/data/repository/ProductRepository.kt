@@ -6,6 +6,7 @@ import com.maumela.magnummanagement.data.local.dao.ProductDao
 import com.maumela.magnummanagement.data.local.entity.ProductEntity
 import com.maumela.magnummanagement.data.model.*
 import com.maumela.magnummanagement.utils.ApiResult
+import com.maumela.magnummanagement.utils.CacheFilters
 import com.maumela.magnummanagement.utils.safeApiCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,15 +17,22 @@ class ProductRepository(
     private val productDao: ProductDao
 ) {
     suspend fun getProducts(filter: ListingFilter? = null): ApiResult<Cached<List<ProductDto>>> = withContext(Dispatchers.IO) {
-        val query = filter?.query
-        val category = filter?.category
+        val query = filter?.query?.trim()
+        val category = filter?.category?.trim()
         val sector = filter?.sector?.name
         val minPrice = filter?.minPrice?.toString()
         val maxPrice = filter?.maxPrice?.toString()
         val minRating = filter?.minRating
         val availability = if (filter?.availableOnly == true) true else null
 
-        fetchWithCache(
+        if (filter?.ownerOnly == true) {
+            return@withContext when (val result = safeApiCall { api.getProducts(query, category, sector, minPrice, maxPrice, minRating, availability, "me") }) {
+                is ApiResult.Success -> ApiResult.Success(Cached(result.data, isStale = false))
+                is ApiResult.Failure -> ApiResult.Failure(result.error)
+            }
+        }
+
+        val result = fetchWithCache(
             fetch = { api.getProducts(query, category, sector, minPrice, maxPrice, minRating, availability, null) },
             save = { dtos ->
                 val entities = dtos.map { dto ->
@@ -46,7 +54,11 @@ class ProductRepository(
                         isSynced = true
                     )
                 }
-                productDao.syncFromServer(entities)
+                if (filter?.hasFilters == true) {
+                    productDao.upsertAll(entities)
+                } else {
+                    productDao.syncFromServer(entities)
+                }
             },
             readCache = {
                 productDao.getAll().map { entity ->
@@ -69,6 +81,13 @@ class ProductRepository(
                 }
             }
         )
+
+        if (result is ApiResult.Success && filter != null) {
+            val filtered = CacheFilters.filterProducts(result.data.data, filter)
+            ApiResult.Success(result.data.copy(data = filtered))
+        } else {
+            result
+        }
     }
 
     suspend fun getProduct(id: Int): ApiResult<Cached<ProductDto>> = withContext(Dispatchers.IO) {
@@ -95,7 +114,7 @@ class ProductRepository(
                 productDao.upsert(entity)
             },
             readCache = {
-                productDao.getAll().firstOrNull { it.id == id }?.let { entity ->
+                productDao.getById(id)?.let { entity ->
                     ProductDto(
                         id = entity.id,
                         sellerId = entity.sellerId,
@@ -149,7 +168,11 @@ class ProductRepository(
     }
 
     suspend fun deleteProduct(id: Int): ApiResult<MessageResponse> = withContext(Dispatchers.IO) {
-        safeApiCall { api.deleteProduct(id) }
+        val result = safeApiCall { api.deleteProduct(id) }
+        if (result is ApiResult.Success) {
+            cacheWrite { productDao.deleteById(id) }
+        }
+        result
     }
 
     suspend fun syncPendingProducts() = withContext(Dispatchers.IO) {

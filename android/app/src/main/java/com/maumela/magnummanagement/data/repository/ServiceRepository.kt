@@ -6,6 +6,7 @@ import com.maumela.magnummanagement.data.local.dao.ServiceDao
 import com.maumela.magnummanagement.data.local.entity.ServiceEntity
 import com.maumela.magnummanagement.data.model.*
 import com.maumela.magnummanagement.utils.ApiResult
+import com.maumela.magnummanagement.utils.CacheFilters
 import com.maumela.magnummanagement.utils.safeApiCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,15 +17,22 @@ class ServiceRepository(
     private val serviceDao: ServiceDao
 ) {
     suspend fun getServices(filter: ListingFilter? = null): ApiResult<Cached<List<ServiceDto>>> = withContext(Dispatchers.IO) {
-        val query = filter?.query
-        val category = filter?.category
+        val query = filter?.query?.trim()
+        val category = filter?.category?.trim()
         val sector = filter?.sector?.name
         val minPrice = filter?.minPrice?.toString()
         val maxPrice = filter?.maxPrice?.toString()
         val minRating = filter?.minRating
         val availability = if (filter?.availableOnly == true) true else null
 
-        fetchWithCache(
+        if (filter?.ownerOnly == true) {
+            return@withContext when (val result = safeApiCall { api.getServices(query, category, sector, minPrice, maxPrice, minRating, availability, "me") }) {
+                is ApiResult.Success -> ApiResult.Success(Cached(result.data, isStale = false))
+                is ApiResult.Failure -> ApiResult.Failure(result.error)
+            }
+        }
+
+        val result = fetchWithCache(
             fetch = { api.getServices(query, category, sector, minPrice, maxPrice, minRating, availability, null) },
             save = { dtos ->
                 val entities = dtos.map { dto ->
@@ -45,7 +53,11 @@ class ServiceRepository(
                         isSynced = true
                     )
                 }
-                serviceDao.syncFromServer(entities)
+                if (filter?.hasFilters == true) {
+                    serviceDao.upsertAll(entities)
+                } else {
+                    serviceDao.syncFromServer(entities)
+                }
             },
             readCache = {
                 serviceDao.getAll().map { entity ->
@@ -67,6 +79,13 @@ class ServiceRepository(
                 }
             }
         )
+
+        if (result is ApiResult.Success && filter != null) {
+            val filtered = CacheFilters.filterServices(result.data.data, filter)
+            ApiResult.Success(result.data.copy(data = filtered))
+        } else {
+            result
+        }
     }
 
     suspend fun getService(id: Int): ApiResult<Cached<ServiceDto>> = withContext(Dispatchers.IO) {
@@ -92,7 +111,7 @@ class ServiceRepository(
                 serviceDao.upsert(entity)
             },
             readCache = {
-                serviceDao.getAll().firstOrNull { it.id == id }?.let { entity ->
+                serviceDao.getById(id)?.let { entity ->
                     ServiceDto(
                         id = entity.id,
                         providerId = entity.providerId,
@@ -144,7 +163,11 @@ class ServiceRepository(
     }
 
     suspend fun deleteService(id: Int): ApiResult<MessageResponse> = withContext(Dispatchers.IO) {
-        safeApiCall { api.deleteService(id) }
+        val result = safeApiCall { api.deleteService(id) }
+        if (result is ApiResult.Success) {
+            cacheWrite { serviceDao.deleteById(id) }
+        }
+        result
     }
 
     suspend fun syncPendingServices() = withContext(Dispatchers.IO) {

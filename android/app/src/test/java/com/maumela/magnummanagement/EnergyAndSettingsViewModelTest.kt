@@ -98,6 +98,7 @@ class SettingsViewModelTest {
     private fun viewModel(): SettingsViewModel {
         every { preferences.theme } returns flowOf(Theme.SYSTEM)
         every { preferences.notificationsEnabled } returns flowOf(true)
+        every { preferences.language } returns flowOf("en")
         coEvery { repository.getSettings() } returns ApiResult.Success(SettingsDto(true, Theme.SYSTEM, null))
         return SettingsViewModel(repository, preferences)
     }

@@ -72,7 +72,7 @@ class Batch4ViewModelTest {
         val repo = mockk<ServiceRepository>()
         val service = testService(2)
         coEvery { repo.getService(2) } returns ApiResult.Success(Cached(service, false))
-        coEvery { repo.deleteService(2) } returns ApiResult.Success(Unit)
+        coEvery { repo.deleteService(2) } returns ApiResult.Success(MessageResponse("Deleted"))
         val vm = ServiceDetailViewModel(repo, 2)
         vm.delete()
         assertTrue(vm.state.value.deleted)

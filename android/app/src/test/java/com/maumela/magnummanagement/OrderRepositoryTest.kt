@@ -3,6 +3,7 @@ package com.maumela.magnummanagement
 import com.maumela.magnummanagement.data.api.ApiService
 import com.maumela.magnummanagement.data.api.ErrorKind
 import com.maumela.magnummanagement.data.local.dao.OrderDao
+import com.maumela.magnummanagement.data.local.entity.OrderEntity
 import com.maumela.magnummanagement.data.local.toEntity
 import com.maumela.magnummanagement.data.model.ItemStatus
 import com.maumela.magnummanagement.data.model.ItemStatusUpdateRequest
@@ -79,7 +80,7 @@ class OrderRepositoryTest {
         coEvery { api.getOrders() } returns listOf(summary)
         val fresh = (repository.getOrders() as ApiResult.Success).data
         assertEquals(false, fresh.isStale)
-        coVerify { dao.replaceAll(listOf(summary.toEntity())) }
+        coVerify { dao.syncFromServer(any()) }
 
         coEvery { api.getOrders() } throws UnknownHostException()
         coEvery { dao.getAll() } returns listOf(summary.toEntity())
