@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 
 /**
- * Theme and notification preference, saved on the device so they apply instantly
+ * Theme, notification, and language preference, saved on the device so they apply instantly
  * (even before the server answers). The server copy (PUT /settings) is kept in sync
  * by SettingsRepository.
  */
@@ -31,12 +31,20 @@ class PreferencesStore(private val dataStore: DataStore<Preferences>) {
         prefs[NOTIFICATIONS_KEY] ?: true
     }
 
+    val language: Flow<String> = safeData.map { prefs ->
+        prefs[LANGUAGE_KEY] ?: "en"
+    }
+
     suspend fun setTheme(theme: Theme) {
         dataStore.edit { it[THEME_KEY] = theme.name }
     }
 
     suspend fun setNotificationsEnabled(enabled: Boolean) {
         dataStore.edit { it[NOTIFICATIONS_KEY] = enabled }
+    }
+
+    suspend fun setLanguage(languageCode: String) {
+        dataStore.edit { it[LANGUAGE_KEY] = languageCode }
     }
 
     /** Called on logout so the next account starts from defaults. */
@@ -47,5 +55,6 @@ class PreferencesStore(private val dataStore: DataStore<Preferences>) {
     companion object {
         val THEME_KEY = stringPreferencesKey("theme")
         val NOTIFICATIONS_KEY = booleanPreferencesKey("notifications_enabled")
+        val LANGUAGE_KEY = stringPreferencesKey("language")
     }
 }

@@ -1,5 +1,7 @@
 package com.maumela.magnummanagement.ui.components
 
+import android.app.Activity
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,26 +12,32 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.maumela.magnummanagement.utils.LocaleHelper
+import com.maumela.magnummanagement.viewmodel.SettingsViewModel
 
 data class LanguageOption(val code: String, val nativeName: String, val englishName: String)
 
 @Composable
-fun LanguagePickerCard(modifier: Modifier = Modifier) {
+fun LanguagePickerCard(
+    settingsViewModel: SettingsViewModel,
+    currentLanguage: String,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
     val languages = listOf(
         LanguageOption("en", "English", "English"),
         LanguageOption("zu", "isiZulu", "Zulu"),
         LanguageOption("af", "Afrikaans", "Afrikaans")
     )
 
-    var selectedLanguage by remember { mutableStateOf(LocaleHelper.getCurrentLocale()) }
+    fun changeLanguage(code: String) {
+        settingsViewModel.setLanguage(code)
+        // Instantly recreate activity to redraw all string resources in the new locale
+        (context as? Activity)?.recreate()
+    }
 
     Card(
         modifier = modifier.fillMaxWidth()
@@ -48,17 +56,15 @@ fun LanguagePickerCard(modifier: Modifier = Modifier) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            selectedLanguage = lang.code
-                            LocaleHelper.setLocale(lang.code)
+                            changeLanguage(lang.code)
                         }
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
-                        selected = selectedLanguage == lang.code,
+                        selected = currentLanguage == lang.code,
                         onClick = {
-                            selectedLanguage = lang.code
-                            LocaleHelper.setLocale(lang.code)
+                            changeLanguage(lang.code)
                         }
                     )
                     Text(

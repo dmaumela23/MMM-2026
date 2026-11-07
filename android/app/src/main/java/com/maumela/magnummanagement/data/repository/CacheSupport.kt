@@ -57,7 +57,12 @@ suspend fun <T> fetchWithCache(
         val error = ApiErrorParser.parse(e)
         if (allowFallback && error.kind.isConnectionProblem()) {
             val cached = cacheRead(readCache)
-            if (cached != null) return ApiResult.Success(Cached(cached, isStale = true))
+            if (cached != null) {
+                if (cached is Collection<*> && cached.isEmpty()) {
+                    return ApiResult.Failure(error)
+                }
+                return ApiResult.Success(Cached(cached, isStale = true))
+            }
         }
         return ApiResult.Failure(error)
     }

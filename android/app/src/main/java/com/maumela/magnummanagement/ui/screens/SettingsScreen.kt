@@ -168,8 +168,13 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // Language Selection Card
+            // Language Selection Card
             Text(stringResource(R.string.section_language), style = MaterialTheme.typography.titleLarge)
-            LanguagePickerCard(modifier = Modifier.fillMaxWidth())
+            LanguagePickerCard(
+                settingsViewModel = settingsViewModel,
+                currentLanguage = settings.language,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             HorizontalDivider()
             Text(stringResource(R.string.section_profile), style = MaterialTheme.typography.titleLarge)

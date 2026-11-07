@@ -3,6 +3,7 @@ package com.maumela.magnummanagement
 import com.maumela.magnummanagement.data.api.ApiService
 import com.maumela.magnummanagement.data.api.ErrorKind
 import com.maumela.magnummanagement.data.local.dao.ProductDao
+import com.maumela.magnummanagement.data.local.entity.ProductEntity
 import com.maumela.magnummanagement.data.local.toEntity
 import com.maumela.magnummanagement.data.model.ProductRequest
 import com.maumela.magnummanagement.data.model.Sector
@@ -45,7 +46,7 @@ class ProductRepositoryTest {
         val cached = (result as ApiResult.Success).data
         assertEquals(listOf(solar, battery), cached.data)
         assertFalse(cached.isStale)
-        coVerify { dao.replaceAll(any()) }
+        coVerify { dao.syncFromServer(any()) }
     }
 
     // Verifies a FILTERED result never wipes the full cache (it only adds/updates rows).
@@ -54,7 +55,7 @@ class ProductRepositoryTest {
         stubApi(listOf(solar))
         repository.getProducts(ListingFilter(query = "solar"))
         coVerify { dao.upsertAll(any()) }
-        coVerify(exactly = 0) { dao.replaceAll(any()) }
+        coVerify(exactly = 0) { dao.syncFromServer(any()) }
     }
 
     // Verifies the filter choices are sent to the server as the documented query parameters.
@@ -116,7 +117,7 @@ class ProductRepositoryTest {
         stubApi(listOf(solar))
         repository.getProducts(ListingFilter(ownerOnly = true))
         coVerify { api.getProducts(null, null, null, null, null, null, null, "me") }
-        coVerify(exactly = 0) { dao.replaceAll(any()) }
+        coVerify(exactly = 0) { dao.syncFromServer(any()) }
         coVerify(exactly = 0) { dao.upsertAll(any()) }
 
         stubApiFailure(UnknownHostException())

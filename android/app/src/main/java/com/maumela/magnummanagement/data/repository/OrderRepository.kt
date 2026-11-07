@@ -2,6 +2,8 @@ package com.maumela.magnummanagement.data.repository
 
 import com.maumela.magnummanagement.data.api.ApiService
 import com.maumela.magnummanagement.data.api.ApiErrorParser
+import com.maumela.magnummanagement.data.api.AppError
+import com.maumela.magnummanagement.data.api.ErrorKind
 import com.maumela.magnummanagement.data.local.dao.OrderDao
 import com.maumela.magnummanagement.data.local.entity.OrderEntity
 import com.maumela.magnummanagement.data.model.*
@@ -74,8 +76,16 @@ class OrderRepository(
         }
     }
 
-    suspend fun createOrder(items: List<OrderItemRequest>, notes: String? = null): ApiResult<OrderDto> =
-        createOrder(OrderCreateRequest(items = items, notes = notes))
+    suspend fun createOrder(items: List<OrderItemRequest>, notes: String? = null): ApiResult<OrderDto> = withContext(Dispatchers.IO) {
+        if (items.isEmpty()) {
+            return@withContext ApiResult.Failure(AppError(ErrorKind.BAD_REQUEST, "Order items cannot be empty."))
+        }
+        val processedItems = items.map { item ->
+            if (item.serviceId != null) item.copy(quantity = 1) else item
+        }
+        val processedNotes = notes?.trim()?.takeIf { it.isNotBlank() }
+        createOrder(OrderCreateRequest(items = processedItems, notes = processedNotes))
+    }
 
     suspend fun cancelOrder(id: Int, request: OrderCancelRequest): ApiResult<OrderDto> = withContext(Dispatchers.IO) {
         safeApiCall { api.cancelOrder(id, request) }
