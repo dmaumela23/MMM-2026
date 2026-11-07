@@ -128,7 +128,7 @@ class ProductRepositoryTest {
     @Test
     fun getProducts_cacheWriteFailure_stillSucceeds() = runTest {
         stubApi(listOf(solar))
-        coEvery { dao.replaceAll(any()) } throws RuntimeException("disk full")
+        coEvery { dao.syncFromServer(any<List<ProductEntity>>()) } throws RuntimeException("disk full")
         val result = repository.getProducts()
         assertEquals(listOf(solar), (result as ApiResult.Success).data.data)
     }

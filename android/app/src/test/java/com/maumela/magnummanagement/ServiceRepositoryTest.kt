@@ -32,7 +32,7 @@ class ServiceRepositoryTest {
         val cached = (repository.getServices() as ApiResult.Success).data
         assertFalse(cached.isStale)
         assertEquals(2, cached.data.size)
-        coVerify { dao.replaceAll(any()) }
+        coEvery { dao.syncFromServer(any<List<ServiceEntity>>()) } returns Unit
     }
 
     // Verifies a server timeout shows cached services, filtered locally and marked stale.
