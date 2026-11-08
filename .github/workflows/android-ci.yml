@@ -37,10 +37,11 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Accept Android SDK licences
-           # GitHub's Ubuntu runners already include the Android SDK. Gradle downloads any missing
-           # platform itself, but only once the licences are accepted.
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+      - name: Accept Android SDK licences and install API 37
+           # GitHub's Ubuntu runners already include the Android SDK. We install platforms;android-37 required by dependencies.
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37" "build-tools;37.0.0" > /dev/null || true
         
       - name: Set up Gradle (with build caching)
         uses: gradle/actions/setup-gradle@v4
